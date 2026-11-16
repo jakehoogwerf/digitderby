@@ -1673,7 +1673,8 @@ const V = {
     if (mine) { focusOn('#turncard'); if (e.timer) qTimer = setTimeout(() => act('ans', { choice: -1, ms: e.timer * 1000 }), e.timer * 1000); }
   },
   async reveal(G, e) {
-    guard(G); cue = null; clearTimeout(qTimer);
+    guard(G); cue = null; clearTimeout(qTimer);    const r = G.racers[e.rid];
+
     const card = $('#turncard'), box = card.querySelector('.ans');
     if (box) box.classList.add('shown');
     card.querySelectorAll('[data-act="ans"]').forEach((b, i) => { b.disabled = true; if (i === e.correct) b.classList.add('right'); else if (i === e.choice) b.classList.add('wrong'); });
