@@ -68,7 +68,7 @@ Things worth knowing:
 
 - **The device that set up the race runs it.** Keep that page open. If it reloads, the home screen offers to continue the race.
 - **Up to 8 racers per room.** For a whole class, run several rooms at once: each group has one person set up a room and share its code. You can also set up a room on the projector with no racers of your own and let up to 8 students or teams join it.
-- **If someone’s device drops out**, the person who set up the race sees a button to play that turn for them.
+- **If someone’s device drops out**, the person who set up the race can skip their turn. A skip counts as running out of time, so that racer gets no answer and moves only on the main die. Nobody can answer a question for another player.
 - **Mixed play works.** Racers on the host’s device, computer racers and joined players can all be in the same race.
 - **A student who reloads** is offered a button to rejoin the room.
 

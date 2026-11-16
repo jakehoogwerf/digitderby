@@ -1359,7 +1359,7 @@ function wireHome() {
   };
   $('#brand').onclick = () => { if (!cur && !isClient()) goHome(); };
   $('#turncard').addEventListener('click', e => {
-    if (e.target.closest('[data-take]')) { takeOver(); return; }
+    if (e.target.closest('[data-skip]')) { skipTurn(); return; }
     const b = e.target.closest('[data-act]'); if (!b || b.disabled || !cue) return;
     if (b.dataset.act === 'ans') act('ans', { choice: +b.dataset.v, ms: performance.now() - cue.t0 }); else act(b.dataset.act, 1);
   });
@@ -1455,11 +1455,11 @@ function renderLobby() {
 
 /* ---------- race screen: drawing ---------- */
 class Abort extends Error {}
-let cur = null, curR = null, view = {}, viewEr = 0, path = [], cols = 12, rows = 1, cue = null, pending = null, tookOver = null, qTimer = 0;
+let cur = null, curR = null, view = {}, viewEr = 0, path = [], cols = 12, rows = 1, cue = null, pending = null, qTimer = 0;
 const guard = G => { if (G !== cur) throw new Abort(); };
 const sleep = (G, ms) => new Promise((res, rej) => setTimeout(() => (G === cur ? res() : rej(new Abort())), ms * speed));
 const narrow = () => window.innerWidth < 900;
-const canAct = r => !r.bot && (isClient() ? r.owner === net.pid : !r.owner || tookOver === r.id);
+const canAct = r => !r.bot && (isClient() ? r.owner === net.pid : !r.owner);
 function focusOn(sel) { if (narrow()) { const e = $(sel); if (e) e.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' }); } }
 function tick(text, tone) {
   const ol = $('#ticker'), li = document.createElement('li');
@@ -1540,12 +1540,13 @@ function actArea(r, label, kind) {
   const mine = canAct(r);
   return `<button class="btn big" data-act="${kind}"${mine ? '' : ' hidden'}>${label}</button>` + (mine ? '' : `<p class="think" data-wait>Waiting for ${esc(r.name)}…</p>`);
 }
-const takeBtn = r => !isClient() && r.owner && !r.bot && !canAct(r) ? `<button class="btn ghost sm take" data-take>Play this turn for ${esc(r.name)}</button>` : '';
-function takeOver() {
-  if (!cue || !cur) return; tookOver = cue.rid; cue.t0 = performance.now();
-  const c = $('#turncard');
-  c.querySelectorAll('[data-act]').forEach(b => { b.hidden = false; b.disabled = false; });
-  c.querySelectorAll('[data-wait],[data-take]').forEach(b => b.remove());
+const skipBtn = r => !isClient() && r.owner && !r.bot && !canAct(r) ? `<button class="btn ghost sm take" data-skip>Skip ${esc(r.name)}’s turn</button>` : '';
+/* The host can skip a player who has gone quiet. A skip counts as running out of time: no answer, main die only. It never answers for them. */
+function skipTurn() {
+  if (!cue || !cur || !pending || pending.rid !== cue.rid) return;
+  const f = pending.resolve; const kind = pending.kind; pending = null; cue = null; clearTimeout(qTimer);
+  $('#turncard').querySelectorAll('[data-act],[data-skip]').forEach(b => { b.disabled = true; });
+  f(kind === 'ans' ? { choice: -1, ms: 0 } : null);
 }
 function act(kind, v) {
   const p = cue; if (!p || p.kind !== kind || !cur) return;
@@ -1569,7 +1570,7 @@ async function moment(G, r, title, sub) {
 const V = {
   async turn(G, e) {
     guard(G); applyStats(G, e.st);
-    const r = G.racers[e.rid], C = CH[r.charId]; curR = r; if (!e.depth) tookOver = null;
+    const r = G.racers[e.rid], C = CH[r.charId]; curR = r;
     drawStandings(G);
     $$('.tok').forEach(t => t.classList.remove('active'));
     const t = $('#tok-' + r.id); if (t) t.classList.add('active');
@@ -1577,7 +1578,7 @@ const V = {
     const you = isClient() && r.owner === net.pid;
     $('#turncard').innerHTML = `<div class="who" style="--h:${C.hue}">${stk(C, 78)}<div><h2>${you ? 'Your turn' : esc(r.name) + (e.depth ? ' goes again' : '’s turn')}</h2><p>${you ? esc(r.name) + ', ' : ''}${C.name}</p></div></div>
       <div class="tcbody">${e.helper ? `<div class="pwt">${esc(r.name)} has finished the race. This roll goes to the teammate at the back.</div>` : `<div class="pwt"><span class="ptag">Power</span><strong>${C.power}</strong>${C.text}</div>`}
-      <div class="act">${actArea(r, 'Show my question', 'go')}</div>${takeBtn(r)}</div>`;
+      <div class="act">${actArea(r, 'Show my question', 'go')}</div>${skipBtn(r)}</div>`;
     if (canAct(r)) { focusOn('#turncard'); const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
   },
   async ask(G, e) {
@@ -1587,7 +1588,7 @@ const V = {
     card.innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b>${tag ? `<span class="tag">${tag}</span>` : ''}</div></div>
       <div class="tcbody"><div class="qbox">${e.timer ? `<div class="timer"><i style="animation-duration:${e.timer}s"></i></div>` : ''}<div class="q${plain.length > 16 ? ' long' : ''}">${q.html}</div></div>
       <div class="ans">${q.choices.map((ch, i) => `<button data-act="ans" data-v="${i}"${mine ? '' : ' disabled'}><kbd>${i + 1}</kbd>${ch}</button>`).join('')}</div>
-      <p class="fb" id="fb" aria-live="polite">${mine || r.bot ? '' : `<span class="think" data-wait>${esc(r.name)} is answering…</span>`}</p>${takeBtn(r)}</div>`;
+      <p class="fb" id="fb" aria-live="polite">${mine || r.bot ? '' : `<span class="think" data-wait>${esc(r.name)} is answering…</span>`}</p>${skipBtn(r)}</div>`;
     cue = { seq: e.s, rid: r.id, kind: 'ans', t0: performance.now() };
     clearTimeout(qTimer);
     if (mine) { focusOn('#turncard'); if (e.timer) qTimer = setTimeout(() => act('ans', { choice: -1, ms: e.timer * 1000 }), e.timer * 1000); }
@@ -1597,7 +1598,7 @@ const V = {
     const card = $('#turncard'), box = card.querySelector('.ans');
     if (box) box.classList.add('shown');
     card.querySelectorAll('[data-act="ans"]').forEach((b, i) => { b.disabled = true; if (i === e.correct) b.classList.add('right'); else if (i === e.choice) b.classList.add('wrong'); });
-    card.querySelectorAll('[data-take]').forEach(b => b.remove());
+    card.querySelectorAll('[data-skip]').forEach(b => b.remove());
     const tm = card.querySelector('.timer i'); if (tm) tm.style.animationPlayState = 'paused';
     const fb = $('#fb'); if (fb) { fb.className = 'fb ' + (e.ok ? 'good' : 'bad'); fb.textContent = e.ok ? (e.quiz ? 'Right. That’s 3 more spaces.' : 'Right. Bonus die unlocked.') : (e.choice < 0 ? 'Out of time.' : 'Not this time.') + (e.quiz ? '' : ' Main die only.'); }
     if (e.ok) sfx.good(); else sfx.bad();
@@ -1610,14 +1611,14 @@ const V = {
       <div class="tcbody"><p class="fb ${e.correct ? 'good' : 'bad'}">${e.correct ? 'Right answer' : `Missed. The answer was <span class="ansv">${e.answer || ''}</span>`}</p>
       <div class="tray">${e.dice.map((d, i) => `<div class="dwrap"><div class="die ${d.kind}" id="die${i}">${face(0)}</div><small>${names[d.kind]}${d.sides !== 6 ? ` (${d.sides} sides)` : ''}</small><em id="dn${i}"></em></div>`).join('')}</div>
       <ul class="mods" id="mods"></ul><p class="total" id="total" hidden></p>
-      <div class="act" id="ract">${r.bot ? '' : actArea(r, 'Roll the dice', 'roll')}</div>${takeBtn(r)}</div>`;
+      <div class="act" id="ract">${r.bot ? '' : actArea(r, 'Roll the dice', 'roll')}</div>${skipBtn(r)}</div>`;
     cue = { seq: e.s, rid: r.id, kind: 'roll', t0: performance.now() };
     if (canAct(r)) { const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
   },
   async rolled(G, e) {
     guard(G); cue = null;
     const r = G.racers[e.rid], ra = $('#ract'); if (ra) ra.hidden = true;
-    $$('#turncard [data-take]').forEach(b => b.remove());
+    $$('#turncard [data-skip]').forEach(b => b.remove());
     const die = i => $('#die' + i) || document.createElement('div'), note = i => $('#dn' + i) || document.createElement('em');
     sfx.dice();
     e.dice.forEach((d, i) => die(i).classList.add('rolling'));
@@ -1711,7 +1712,7 @@ const ui = {
 };
 
 function mount(G) {
-  cur = G; curR = null; view = {}; cue = null; pending = null; tookOver = null; clearTimeout(qTimer);
+  cur = G; curR = null; view = {}; cue = null; pending = null; clearTimeout(qTimer);
   G.racers.forEach(r => { view[r.id] = r.pos; }); viewEr = G.eraser;
   show('race');
   $('#ticker').innerHTML = ''; $('#finish').innerHTML = '';
