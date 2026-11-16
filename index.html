@@ -232,14 +232,14 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
 .t-end .ti{background:repeating-conic-gradient(var(--navy) 0 25%,#fff 0 50%) 0 0/50% 50%}
 .tile.wiped .ti{background:var(--wipe);color:transparent}
 .tile.wiped .ti>*{opacity:0}
-.tok{position:absolute;z-index:2;width:calc(var(--ts)*.78*var(--sc,1));aspect-ratio:1;transform:translate(calc(-50% + var(--ox,0px)),calc(-56% + var(--oy,0px)));transition:left .12s ease-out,top .12s ease-out,width .2s}
+.tok{position:absolute;z-index:2;width:calc(var(--ts)*.78*var(--sc,1));aspect-ratio:1;transform:translate(calc(-50% + var(--ox,0px)),calc(-56% + var(--oy,0px)));transition:left .25s ease-out,top .25s ease-out,width .2s}
 .tb{display:block;width:100%;height:100%;border-radius:50%;background:hsl(var(--h) 92% 66%) radial-gradient(circle at 32% 26%,rgba(255,255,255,.55) 0 18%,transparent 19%);border:max(2px,calc(var(--ts)*.055)) solid #fff;box-shadow:0 0 0 2px var(--line),0 max(3px,calc(var(--ts)*.08)) 0 2px var(--line);font-size:calc(var(--ts)*.44*var(--sc,1));line-height:1;font-family:var(--emoji)}
 .tok.slide{transition:left .5s cubic-bezier(.3,1.3,.5,1),top .5s cubic-bezier(.3,1.3,.5,1)}
 .tok.active{z-index:5}
 .tok.active .tb{box-shadow:0 0 0 2px var(--line),0 0 0 6px var(--yellow),0 0 0 8px var(--line),0 max(3px,calc(var(--ts)*.08)) 0 8px var(--line)}
 .tok.active::after{content:"";position:absolute;left:50%;top:-34%;width:0;height:0;border:calc(var(--ts)*.14) solid transparent;border-top-color:var(--yellow);border-bottom:0;transform:translateX(-50%);filter:drop-shadow(0 2px 0 var(--line)) drop-shadow(0 -1px 0 var(--line));animation:point .7s ease-in-out infinite alternate}
 @keyframes point{to{transform:translate(-50%,-30%)}}
-.tok.run .tb{animation:bob .24s ease-in-out infinite}
+.tok.run .tb{animation:bob .42s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-22%) rotate(-7deg)}}
 .tok.done{opacity:.6}
 .tok.zap .tb{animation:zap .5s}
@@ -1643,10 +1643,11 @@ const V = {
     const r = G.racers[e.rid], t = $('#tok-' + r.id); focusOn('#board');
     if (isClient()) { r.pos = e.to; if (e.to >= G.len) r.finished = true; }
     if (e.kind === 'dice') {
-      const per = e.to - e.from > 9 ? 80 : 120;
+      const per = e.to - e.from > 9 ? 150 : 230;
       if (t) t.classList.add('run');
       for (let p = e.from + 1; p <= e.to; p++) { view[r.id] = p; place(); sfx.hop(); await sleep(G, per); }
       if (t) t.classList.remove('run');
+      await sleep(G, 220);
     } else {
       const d = e.to - e.from;
       tick(`${r.name} ${d > 0 ? 'jumps ahead' : 'slides back'} ${Math.abs(d)} (${e.why}).`, d > 0 ? 'good' : 'bad');
