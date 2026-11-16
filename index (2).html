@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digit Derby</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&family=Bagel+Fat+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --grass:#35a556; --grass2:#3cb05f; --infield:#27894a; --infield2:#2c9250;
+  --track:#de5b40; --track2:#cf4c33; --lane:#fffaf0; --wipe:#8a9a8f;
+  --line:#161b3a; --card:#ffffff; --inset:#eef1fb; --text:#161b3a; --soft:#525b86;
+  --onfield:#0f2418; --slate:#1b2150;
+  --red:#e8443c; --blue:#2c7cf2; --yellow:#ffc928; --green:#14a05a; --purple:#7a4df0;
+  --good:#0c8a50; --bad:#d32d47; --navy:#161b3a;
+  --disp:'Bagel Fat One','Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;
+  --body:'Lexend',Verdana,'Segoe UI',system-ui,sans-serif;
+  --emoji:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --grass:#0f3223; --grass2:#123a29; --infield:#0b281c; --infield2:#0e2f21;
+    --track:#b8472f; --track2:#a63c27; --lane:#f6efdc; --wipe:#3c4a43;
+    --line:#05071a; --card:#232a58; --inset:#191f47; --text:#f4f1e6; --soft:#b4bbe0;
+    --onfield:#f4f1e6; --slate:#0d1130;
+    --red:#ee5a52; --blue:#4b90f5; --yellow:#ffd24a; --green:#27b068; --purple:#9a78ff;
+    --good:#5fdd9b; --bad:#ff8798;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --grass:#0f3223; --grass2:#123a29; --infield:#0b281c; --infield2:#0e2f21;
+  --track:#b8472f; --track2:#a63c27; --lane:#f6efdc; --wipe:#3c4a43;
+  --line:#05071a; --card:#232a58; --inset:#191f47; --text:#f4f1e6; --soft:#b4bbe0;
+  --onfield:#f4f1e6; --slate:#0d1130;
+  --red:#ee5a52; --blue:#4b90f5; --yellow:#ffd24a; --green:#27b068; --purple:#9a78ff;
+  --good:#5fdd9b; --bad:#ff8798;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; color:var(--text); font:400 17px/1.5 var(--body);
+  background:var(--grass) repeating-linear-gradient(90deg,var(--grass) 0 96px,var(--grass2) 96px 192px);
+}
+.bunting{height:46px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='46'%3E%3Cpath d='M0 4h200' stroke='%23161b3a' stroke-width='3'/%3E%3Cg stroke='%23161b3a' stroke-width='2.5' stroke-linejoin='round'%3E%3Cpath d='M4 5h32L20 40z' fill='%23e8443c'/%3E%3Cpath d='M44 5h32L60 40z' fill='%23ffc928'/%3E%3Cpath d='M84 5h32L100 40z' fill='%232c7cf2'/%3E%3Cpath d='M124 5h32L140 40z' fill='%23fffaf0'/%3E%3Cpath d='M164 5h32L180 40z' fill='%237a4df0'/%3E%3C/g%3E%3C/svg%3E") repeat-x top center}
+.wrap{max-width:1260px;margin:0 auto;padding:6px clamp(14px,3vw,36px) 56px}
+h1,h2,h3{font-family:var(--disp);font-weight:400;margin:0;line-height:1.1}
+h2{font-size:1.6rem} h3{font-size:1.25rem;margin-bottom:10px}
+p{margin:0}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default}
+:focus-visible{outline:4px solid var(--purple);outline-offset:3px}
+[hidden]{display:none!important}
+.sub{color:var(--soft);font-size:.92rem}
+.onfield{color:var(--onfield);font-weight:700}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.brand{font:400 1.3rem var(--disp);background:var(--slate);color:#fff;border:3px solid var(--line);border-radius:999px;padding:5px 18px 5px 8px;display:flex;align-items:center;gap:10px;margin-right:auto;box-shadow:0 4px 0 var(--line)}
+.bdie{width:30px;height:30px;border-radius:9px;background:var(--yellow);border:2.5px solid var(--navy);display:grid;grid-template-columns:repeat(3,1fr);place-items:center;padding:3px;transform:rotate(-10deg)}
+.bdie i{width:5px;height:5px;border-radius:50%;background:var(--navy)}
+.bdie i:nth-child(1){grid-area:1/1}.bdie i:nth-child(2){grid-area:1/3}.bdie i:nth-child(3){grid-area:2/2}.bdie i:nth-child(4){grid-area:3/1}.bdie i:nth-child(5){grid-area:3/3}
+.topbtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* buttons, panels */
+.btn{font-weight:700;background:var(--yellow);color:var(--navy);border:3px solid var(--line);border-radius:14px;padding:.5em 1.05em;box-shadow:0 5px 0 var(--line);transition:transform .06s,box-shadow .06s}
+.btn:hover:not(:disabled){filter:brightness(1.06)}
+.btn:active:not(:disabled){transform:translateY(5px);box-shadow:0 0 0 var(--line)}
+.btn.ghost{background:var(--card);color:var(--text)}
+.btn.sm{font-size:.88rem;padding:.36em .85em;box-shadow:0 4px 0 var(--line);border-radius:12px}
+.btn.sm:active:not(:disabled){transform:translateY(4px)}
+.btn.big{font:400 1.45rem var(--disp);padding:.5em 1.3em .55em;border-radius:18px;box-shadow:0 7px 0 var(--line)}
+.btn.big:active:not(:disabled){transform:translateY(7px)}
+.btn:disabled{opacity:.5;box-shadow:0 2px 0 var(--line)}
+.panel{background:var(--card);border:3px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--line);padding:20px}
+
+/* racer stickers */
+.stk{display:inline-grid;place-items:center;flex:none;width:var(--s,48px);height:var(--s,48px);border-radius:50%;background:hsl(var(--h) 92% 66%) radial-gradient(circle at 32% 26%,rgba(255,255,255,.55) 0 18%,transparent 19%);border:max(3px,calc(var(--s,48px)*.07)) solid #fff;box-shadow:0 0 0 2.5px var(--line),0 calc(var(--s,48px)*.09) 0 2.5px var(--line);font-size:calc(var(--s,48px)*.56);line-height:1}
+.art{display:block;width:100%;height:100%;overflow:visible}
+.stk .art,.tb .art{transform:scale(1.1)}
+
+/* home */
+.hero{padding:22px 0 6px}
+.hero h1,.fin h1{color:var(--yellow);text-shadow:3px 0 0 var(--line),-3px 0 0 var(--line),0 3px 0 var(--line),0 -3px 0 var(--line),2px 2px 0 var(--line),-2px 2px 0 var(--line),2px -2px 0 var(--line),-2px -2px 0 var(--line),0 9px 0 var(--line),3px 9px 0 var(--line),-3px 9px 0 var(--line)}
+.hero h1{font-size:clamp(3.6rem,13vw,8.4rem);line-height:.9;transform:rotate(-2deg);transform-origin:left;letter-spacing:.005em}
+.lede{font-size:1.25rem;max-width:34em;margin-top:34px}
+.lane{position:relative;display:grid;grid-template-columns:repeat(11,1fr);height:122px;margin:26px 0 6px;max-width:900px;background:var(--track);border:3px solid var(--line);border-radius:22px;box-shadow:0 7px 0 var(--line);overflow:visible}
+.lane::before,.lane::after{content:"";position:absolute;left:10px;right:10px;height:3px;background:var(--lane);opacity:.9}
+.lane::before{top:9px}.lane::after{bottom:9px}
+.lane b{display:grid;place-items:end center;padding-bottom:14px;font:400 1.35rem var(--disp);color:var(--lane);border-left:3px solid var(--lane)}
+.lane b:first-child{border-left:0}
+.lane b:nth-child(even){background:rgba(0,0,0,.07)}
+.lane .stk{position:absolute;top:14px;transform:translateX(-50%);animation:runin 1s cubic-bezier(.2,.9,.3,1.25) backwards}
+@keyframes runin{from{left:-6%;opacity:0}}
+#resume .panel{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:34px;background:var(--yellow);color:var(--navy)}
+#resume .panel p{flex:1;min-width:14em}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:44px 0 24px}
+.mode{position:relative;display:block}
+.mode input{position:absolute;opacity:0;inset:0}
+.mbody{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:center;height:100%;background:var(--card);border:3px solid var(--line);border-radius:22px;padding:16px 20px;box-shadow:0 7px 0 var(--line);cursor:pointer;transition:transform .08s}
+.mico{grid-row:1/3;width:64px;height:64px;border-radius:18px;display:grid;place-items:center;padding:9px;background:var(--inset);border:3px solid var(--line)}
+.mbody b{font:400 1.6rem/1.1 var(--disp);align-self:end}
+.mbody>span:last-child{color:var(--soft);align-self:start;line-height:1.35}
+.mode input:checked+.mbody{background:var(--yellow);color:var(--navy);transform:translateY(-3px);box-shadow:0 10px 0 var(--line)}
+.mode input:checked+.mbody>span:last-child{color:var(--navy)}
+.mode input:checked+.mbody .mico{background:#fff}
+.mode input:focus-visible+.mbody{outline:4px solid var(--purple);outline-offset:3px}
+.setup{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:22px;align-items:start}
+.rlist{list-style:none;margin:14px 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px;background:var(--inset);border:2.5px solid var(--line);border-radius:16px}
+.pick{background:none;border:0;padding:4px 4px 8px;border-radius:50%;transition:transform .1s}
+.pick:hover{transform:rotate(-8deg) scale(1.08)}
+.rmain{display:flex;flex-direction:column;gap:5px;min-width:0}
+.nm{width:100%;max-width:15em;font-weight:700;font-size:1.05rem;background:var(--card);border:2.5px solid var(--line);border-radius:10px;padding:.3em .55em}
+.chg{background:none;border:0;padding:0;text-align:left;font-size:.9rem;color:var(--soft);line-height:1.35}
+.chg b{color:var(--text);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.ropts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+select{background:var(--card);border:2.5px solid var(--line);border-radius:10px;padding:.32em .5em;font-weight:700}
+.chk{display:flex;align-items:center;gap:6px;font-size:.92rem;font-weight:700}
+.chk input{width:19px;height:19px;accent-color:var(--purple)}
+.x{width:32px;height:32px;border-radius:50%;border:2.5px solid var(--line);background:var(--card);font-weight:700;line-height:1}
+.x:disabled{opacity:.3}
+.addrow{display:flex;gap:10px;flex-wrap:wrap}
+.field{margin-top:18px}
+.field>label,.flabel{display:block;font-weight:700;margin-bottom:7px}
+.chips,.seg{display:flex;flex-wrap:wrap;gap:8px}
+.chips label,.seg label{position:relative}
+.chips input,.seg input{position:absolute;opacity:0;inset:0}
+.chips span,.seg span{display:block;border:2.5px solid var(--line);border-radius:999px;padding:.26em .85em;font-size:.92rem;font-weight:700;background:var(--inset);cursor:pointer;box-shadow:0 3px 0 var(--line)}
+.chips input:checked+span,.seg input:checked+span{background:var(--purple);color:#fff}
+.chips input:focus-visible+span,.seg input:focus-visible+span{outline:4px solid var(--purple);outline-offset:3px}
+.startbar{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:30px}
+.startbar .btn{font-size:1.8rem;background:var(--red);color:#fff}
+
+/* online play */
+.netpill{align-self:center;font-weight:700;font-size:.88rem;background:var(--slate);color:#fff;border:3px solid var(--line);border-radius:999px;padding:.25em .9em}
+.netpill.warn{background:var(--yellow);color:var(--navy)}
+.joinbox{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 20px;align-items:center;margin-top:36px}
+.joinrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.joinrow input{font-weight:700;font-size:1.1rem;background:var(--inset);border:2.5px solid var(--line);border-radius:12px;padding:.42em .6em;width:10em}
+#jcode{width:5.4em;text-transform:uppercase;letter-spacing:.18em;font-family:var(--disp);font-weight:400;font-size:1.35rem;text-align:center}
+.jerr{grid-column:1/-1;color:var(--bad);font-weight:700;min-height:0}
+.jerr:empty{display:none}
+.invite{margin-top:18px;padding-top:16px;border-top:3px dashed var(--line);display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.codebox{display:flex;align-items:center;gap:16px;background:var(--slate);color:#fff;border:3px solid var(--line);border-radius:18px;padding:8px 22px;box-shadow:0 5px 0 var(--line)}
+.codebox span{font-weight:700}
+.codebox b{font:400 3rem/1.1 var(--disp);letter-spacing:.14em;color:var(--yellow)}
+.rrow.remote{background:var(--card);border-style:dashed}
+.rname{font-size:1.05rem}
+.tag2{display:inline-block;margin-left:8px;font:700 .75rem var(--body);background:var(--blue);color:#fff;border-radius:999px;padding:.1em .7em;vertical-align:middle}
+#lobby .hero h1{font-size:clamp(3rem,10vw,6rem)}
+#lobby .setup{margin-top:30px}
+.lobme{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.mine{display:flex;gap:18px;align-items:center}
+.mine .cart{width:132px;height:132px;flex:none;border:3px solid var(--line);border-radius:22px;box-shadow:0 6px 0 var(--line)}
+.mine .cart .art{width:112px;height:112px}
+.mine h3{font-size:1.6rem;margin-bottom:6px}
+.mine .cp{display:inline-block;margin-bottom:8px}
+.who-list{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:12px 18px}
+.who-list li{display:flex;align-items:center;gap:10px;padding-bottom:6px}
+.take{align-self:center}
+
+/* power moments */
+.moment{position:fixed;inset:0;z-index:30;display:grid;place-items:center;pointer-events:none;background:rgba(8,12,34,.45);animation:mfade .18s}
+.mcard{width:min(330px,84vw);background:var(--card);color:var(--text);border:4px solid var(--line);border-radius:26px;box-shadow:0 12px 0 var(--line);overflow:hidden;text-align:center;padding-bottom:18px;animation:slam .5s cubic-bezier(.2,1.5,.4,1) both}
+.mtop{position:relative;height:190px;display:grid;place-items:center;background:hsl(var(--h) 92% 66%);border-bottom:4px solid var(--line);overflow:hidden}
+.mrays{position:absolute;inset:-60%;background:repeating-conic-gradient(rgba(255,255,255,.4) 0 12deg,transparent 12deg 24deg);animation:spin 6s linear infinite}
+.mtop .art{position:relative;width:160px;height:160px;filter:drop-shadow(0 6px 0 rgba(22,27,58,.35));animation:pop .5s .2s backwards}
+.mwho{font-weight:700;margin:14px 12px 0;color:var(--soft)}
+.mcard h2{font-size:2.4rem;margin:2px 12px 0;line-height:1.05}
+.msub{display:inline-block;margin-top:10px;font:400 1.3rem var(--disp);background:var(--yellow);color:var(--navy);border:3px solid var(--line);border-radius:999px;padding:.05em .9em}
+.moment.out .mcard{animation:mout .2s ease-in forwards}
+@keyframes slam{0%{transform:scale(2.6) rotate(-16deg);opacity:0}60%{transform:scale(.94) rotate(2deg);opacity:1}100%{transform:none}}
+@keyframes mout{to{transform:translateY(60px) scale(.6);opacity:0}}
+@keyframes mfade{from{background:rgba(8,12,34,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.slab.shake{animation:shake2 .4s .22s}
+@keyframes shake2{20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,2px)}}
+
+/* dialogs */
+dialog{width:min(1080px,94vw);max-height:88vh;border:3px solid var(--line);border-radius:24px;background:var(--card);color:var(--text);padding:22px;box-shadow:0 10px 0 var(--line)}
+dialog#howto{width:min(640px,94vw)}
+dialog::backdrop{background:rgba(8,12,34,.66)}
+.dhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.dhead h2{margin-right:auto;font-size:1.9rem}
+.dbtns{display:flex;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-top:16px;padding-bottom:8px}
+.cc{position:relative;display:flex;flex-direction:column;text-align:center;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:0 0 12px;color:var(--text);box-shadow:0 6px 0 var(--line);overflow:hidden;transition:transform .1s}
+.cart{display:grid;place-items:center;height:104px;background-color:hsl(var(--h) 92% 68%);background-image:radial-gradient(rgba(255,255,255,.5) 3px,transparent 3.5px);background-size:16px 16px;border-bottom:3px solid var(--line)}
+.cart .art{width:92px;height:92px;filter:drop-shadow(0 4px 0 rgba(22,27,58,.3));transition:transform .15s}
+.cno{position:absolute;top:8px;left:8px;font:400 .82rem var(--disp);background:#fff;color:var(--navy);border:2px solid var(--navy);border-radius:999px;padding:0 .5em}
+.cn{font:400 1.12rem/1.15 var(--disp);margin:10px 8px 6px}
+.cp{align-self:center;font-weight:700;font-size:.8rem;background:var(--purple);color:#fff;border-radius:999px;padding:.1em .8em}
+.ct{font-size:.88rem;line-height:1.35;margin:8px 12px 0}
+.tk{position:absolute;top:34px;left:-8px;right:-8px;background:var(--navy);color:#fff;font-weight:700;font-size:.85rem;padding:3px;transform:rotate(-6deg)}
+button.cc:hover:not(:disabled){transform:translateY(-4px) rotate(-1.5deg)}
+button.cc:hover:not(:disabled) .cart .art{transform:scale(1.18) rotate(6deg)}
+button.cc.mine{outline:5px solid var(--yellow);outline-offset:-1px}
+button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc:disabled .ct{opacity:.4;filter:grayscale(1)}
+.rules p{margin-top:12px;max-width:60ch}
+.key{display:inline-grid;place-items:center;min-width:2em;padding:0 .3em;border:2px solid var(--navy);border-radius:7px;font:400 .95rem var(--disp)}
+.k-boost{background:var(--yellow);color:var(--navy)}.k-slip{background:var(--blue);color:#fff}.k-quiz{background:var(--purple);color:#fff}
+
+/* race */
+.racegrid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(320px,1fr);gap:24px;align-items:start}
+.status{display:flex;align-items:center;gap:8px 22px;flex-wrap:wrap;font-weight:700;margin-bottom:12px;min-height:46px;background:var(--slate);color:#fff;border:3px solid var(--line);border-radius:16px;padding:6px 18px;box-shadow:0 5px 0 var(--line)}
+.status .rd{font:400 1.35rem var(--disp);color:var(--yellow)}
+.chalk{display:inline-flex;gap:5px;align-items:center}
+.chalk i{width:26px;height:10px;border-radius:3px;background:#fff;border:2px solid var(--line)}
+.chalk i.gone{opacity:.25}
+.slab{position:relative;background:var(--infield) repeating-linear-gradient(0deg,var(--infield) 0 40px,var(--infield2) 40px 80px);border:3px solid var(--line);border-radius:28px;padding:clamp(12px,2.2vw,24px);box-shadow:0 9px 0 var(--line)}
+.slab::before{content:"";position:absolute;inset:7px;border:2.5px dashed rgba(255,255,255,.4);border-radius:21px;pointer-events:none}
+.board{position:relative;width:100%;--ts:60px}
+.trk{position:absolute;inset:0;filter:drop-shadow(0 5px 0 rgba(8,12,34,.35))}
+.glyph{position:absolute;display:grid;place-items:center;font:400 calc(var(--ts)*.62) var(--disp);color:#fff;opacity:.2;pointer-events:none}
+.tile{position:absolute}
+.ti{position:absolute;inset:0;background:var(--track);border:1.5px solid var(--lane);display:grid;place-items:center;font:400 calc(var(--ts)*.36) var(--disp);color:var(--lane)}
+.alt .ti{background:var(--track2)}
+.c-tl .ti{border-top-left-radius:46%}.c-tr .ti{border-top-right-radius:46%}.c-bl .ti{border-bottom-left-radius:46%}.c-br .ti{border-bottom-right-radius:46%}
+.ti small{position:absolute;top:7%;left:11%;font-size:calc(var(--ts)*.2);line-height:1;opacity:.85}
+.ti b{font-weight:400;font-size:calc(var(--ts)*.42)}
+.t-boost .ti{background:var(--yellow);color:var(--navy)}
+.t-slip .ti{background:var(--blue);color:#fff}
+.t-quiz .ti{background:var(--purple);color:#fff}
+.t-start .ti{background:var(--lane);color:var(--navy);font-size:calc(var(--ts)*.3)}
+.t-end .ti{background:repeating-conic-gradient(var(--navy) 0 25%,#fff 0 50%) 0 0/50% 50%}
+.tile.wiped .ti{background:var(--wipe);color:transparent}
+.tile.wiped .ti>*{opacity:0}
+.tok{position:absolute;z-index:2;width:calc(var(--ts)*.78*var(--sc,1));aspect-ratio:1;transform:translate(calc(-50% + var(--ox,0px)),calc(-56% + var(--oy,0px)));transition:left .12s ease-out,top .12s ease-out,width .2s}
+.tb{display:block;width:100%;height:100%;border-radius:50%;background:hsl(var(--h) 92% 66%) radial-gradient(circle at 32% 26%,rgba(255,255,255,.55) 0 18%,transparent 19%);border:max(2px,calc(var(--ts)*.055)) solid #fff;box-shadow:0 0 0 2px var(--line),0 max(3px,calc(var(--ts)*.08)) 0 2px var(--line);font-size:calc(var(--ts)*.44*var(--sc,1));line-height:1;font-family:var(--emoji)}
+.tok.slide{transition:left .5s cubic-bezier(.3,1.3,.5,1),top .5s cubic-bezier(.3,1.3,.5,1)}
+.tok.active{z-index:5}
+.tok.active .tb{box-shadow:0 0 0 2px var(--line),0 0 0 6px var(--yellow),0 0 0 8px var(--line),0 max(3px,calc(var(--ts)*.08)) 0 8px var(--line)}
+.tok.active::after{content:"";position:absolute;left:50%;top:-34%;width:0;height:0;border:calc(var(--ts)*.14) solid transparent;border-top-color:var(--yellow);border-bottom:0;transform:translateX(-50%);filter:drop-shadow(0 2px 0 var(--line)) drop-shadow(0 -1px 0 var(--line));animation:point .7s ease-in-out infinite alternate}
+@keyframes point{to{transform:translate(-50%,-30%)}}
+.tok.run .tb{animation:bob .24s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-22%) rotate(-7deg)}}
+.tok.done{opacity:.6}
+.tok.zap .tb{animation:zap .5s}
+@keyframes zap{40%{transform:scale(1.5) rotate(-12deg)}}
+.tok.er{z-index:4}
+.tok.er .tb{border-radius:22%;background:#fff}
+.pa{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;margin-top:20px;background:var(--slate);color:#fff;border:3px solid var(--line);border-radius:18px;padding:12px 16px;box-shadow:0 6px 0 var(--line)}
+.pa>span{display:block;line-height:0}
+.ticker{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;min-height:6.6em;justify-content:flex-end}
+.ticker li{padding-left:14px;border-left:5px solid rgba(255,255,255,.25);font-size:.95rem;opacity:.62}
+.ticker li:last-child{opacity:1;font-weight:700;font-size:1.05rem;color:var(--yellow)}
+.ticker .good{border-color:#3ddc97}.ticker .bad{border-color:#ff7b8f}.ticker .pow{border-color:#b9a4ff}
+.side{display:flex;flex-direction:column;gap:22px}
+.turncard{min-height:440px;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.who{display:flex;align-items:center;gap:16px;padding:16px 20px 20px;background-color:hsl(var(--h) 92% 72%);background-image:radial-gradient(rgba(255,255,255,.45) 3px,transparent 3.5px);background-size:16px 16px;color:var(--navy);border-bottom:3px solid var(--line)}
+.who h2{font-size:1.8rem;overflow-wrap:anywhere}
+.who p{font-weight:700}
+.who.sm{gap:12px;padding:10px 16px 14px;font-size:1.1rem}
+.who.sm b{font:400 1.3rem var(--disp)}
+.tag{display:inline-block;margin-left:10px;padding:.05em .7em;border-radius:999px;background:var(--navy);color:#fff;font:700 .8rem var(--body);vertical-align:middle}
+.tcbody{flex:1;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px}
+.pwt{background:var(--inset);border:2.5px solid var(--line);border-radius:14px;padding:12px 14px;font-size:.98rem}
+.pwt strong{display:block;font:400 1.25rem var(--disp);margin-bottom:2px}
+.ptag{float:right;font-weight:700;font-size:.78rem;background:var(--purple);color:#fff;border-radius:999px;padding:.05em .8em}
+.act{margin-top:auto;display:flex;justify-content:center;min-height:72px;align-items:center}
+.think{color:var(--soft);font-style:italic}
+.qbox{background:var(--slate);color:#fff;border:3px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:inset 0 5px 0 rgba(0,0,0,.25)}
+.q{font:700 clamp(2.1rem,4.6vw,2.9rem)/1.25 var(--body);text-align:center;padding:.6em .4em;font-variant-numeric:tabular-nums}
+.q.long{font-size:clamp(1.3rem,2.6vw,1.65rem);padding:.9em .6em}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.78em;line-height:1.12;margin:0 .12em}
+.fr i{font-style:normal;padding:0 .22em}
+.fr i:first-child{border-bottom:.1em solid currentColor}
+.bx{display:inline-grid;place-items:center;min-width:1.25em;height:1.25em;border:.1em solid var(--yellow);border-radius:.22em;color:var(--yellow);font-weight:700;vertical-align:middle;line-height:1}
+.fr .bx{font-size:.9em;margin:.05em 0 .15em}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
+.ans button{position:relative;font-weight:700;font-size:1.6rem;min-height:72px;padding:.3em;background:var(--bg);color:#fff;border:3px solid var(--line);border-radius:16px;box-shadow:0 6px 0 var(--line);font-variant-numeric:tabular-nums;transition:transform .06s,opacity .2s}
+.ans button:nth-child(1){--bg:var(--red)}.ans button:nth-child(2){--bg:var(--blue)}.ans button:nth-child(3){--bg:var(--yellow);color:var(--navy)}.ans button:nth-child(4){--bg:var(--green)}
+.ans button:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.08)}
+.ans button:active:not(:disabled){transform:translateY(6px);box-shadow:none}
+.ans kbd{position:absolute;top:5px;left:8px;display:grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:rgba(255,255,255,.3);font:700 .68rem var(--body)}
+.ans .picked{outline:5px solid var(--text);outline-offset:2px}
+.ans.shown button{opacity:.3;filter:grayscale(.7)}
+.ans.shown .right{opacity:1;filter:none;background:var(--green);color:#fff;transform:scale(1.04);z-index:1}
+.ans.shown .wrong{opacity:1;filter:none;background:var(--bad);color:#fff;animation:shake .35s}
+.ans .right::after,.ans .wrong::after{position:absolute;top:-12px;right:-8px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid var(--line);font:700 1.1rem var(--body)}
+.ans .right::after{content:"✓";color:#0c8a50}.ans .wrong::after{content:"✗";color:#d32d47}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.timer{height:12px;background:rgba(255,255,255,.15)}
+.timer i{display:block;height:100%;background:var(--yellow);transform-origin:left;animation:drain linear forwards}
+@keyframes drain{to{transform:scaleX(0)}}
+.fb{font:400 1.3rem var(--disp);text-align:center;min-height:1.5em}
+.fb.good{color:var(--good)}.fb.bad{color:var(--bad)}
+.ansv{display:inline-block;padding:0 .4em;border:2.5px solid currentColor;border-radius:9px;font:700 1.15rem var(--body)}
+.tray{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:18px 8px 12px;background:var(--infield);border:3px solid var(--line);border-radius:18px;box-shadow:inset 0 6px 0 rgba(0,0,0,.25)}
+.dwrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;text-align:center;color:#fff}
+.dwrap small{font-weight:700;font-size:.82rem;line-height:1.1}
+.dwrap em{font-style:normal;font-size:.78rem;line-height:1.2;min-height:1.2em;color:var(--yellow);font-weight:700}
+.die{width:72px;height:72px;border-radius:18px;border:3px solid #161b3a;background:#fff;color:#161b3a;box-shadow:0 6px 0 #161b3a,inset 0 -7px 0 rgba(22,27,58,.13);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:10px 10px 14px;place-items:center}
+.die.bonus{background:#ffc928}.die.power{background:#c2b2ff}
+.die i{width:12px;height:12px;border-radius:50%;background:#161b3a}
+.die b{grid-area:1/1/4/4;font:400 2.1rem var(--disp)}
+.die.rolling{animation:tumble .3s linear infinite}
+.dwrap:nth-child(2) .die.rolling{animation-duration:.26s;animation-direction:reverse}
+@keyframes tumble{25%{transform:translateY(-12px) rotate(90deg)}50%{transform:translateY(0) rotate(180deg)}75%{transform:translateY(-8px) rotate(270deg)}100%{transform:rotate(360deg)}}
+.die.chg{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.25) rotate(8deg)}}
+.mods{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.mods li{display:flex;justify-content:space-between;gap:10px;background:var(--purple);color:#fff;border:2.5px solid var(--line);border-radius:999px;padding:2px 16px;font-weight:700;animation:pop .35s}
+.total{display:flex;align-items:center;justify-content:center;gap:12px;font:400 1.7rem var(--disp)}
+.burst{display:grid;place-items:center;width:92px;height:92px;background:var(--line);clip-path:polygon(50% 0%,61% 12%,75% 7%,79% 21%,93% 25%,88% 39%,100% 50%,88% 61%,93% 75%,79% 79%,75% 93%,61% 88%,50% 100%,39% 88%,25% 93%,21% 79%,7% 75%,12% 61%,0% 50%,12% 39%,7% 25%,21% 21%,25% 7%,39% 12%);animation:pop .4s}
+.burst b{display:grid;place-items:center;width:82px;height:82px;background:var(--yellow);color:var(--navy);clip-path:inherit;font:400 2.5rem var(--disp)}
+.standings{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.standings li{display:grid;grid-template-columns:1.3em auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 10px 9px 6px;border-radius:14px;border:2.5px solid transparent}
+.standings li.cur{border-color:var(--line);background:var(--inset)}
+.standings .pl{font:400 1.2rem var(--disp);text-align:center;color:var(--soft)}
+.sn{display:flex;flex-direction:column;gap:3px;line-height:1.2;min-width:0}
+.sn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sn small{color:var(--soft)}
+.bar{display:block;height:9px;border-radius:9px;background:var(--inset);border:2px solid var(--line);overflow:hidden}
+.standings li.cur .bar{background:var(--card)}
+.bar i{display:block;height:100%;background:hsl(var(--h) 92% 62%);transition:width .3s}
+.sp{text-align:right;font-weight:700;line-height:1.2}
+.sp small{display:block;font-weight:400;color:var(--soft)}
+
+/* finish */
+#finish{position:relative;padding-top:24px}
+.fin{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:32px;align-items:start}
+.fin h1{font-size:clamp(2.6rem,7vw,4.8rem);overflow-wrap:anywhere;line-height:1}
+.champ{display:flex;flex-direction:column;gap:22px;align-items:flex-start}
+.podium{display:flex;align-items:flex-end;gap:10px;margin-top:8px;padding:0 14px;border-bottom:5px solid var(--line);border-radius:0 0 4px 4px}
+.pcol{display:flex;flex-direction:column;align-items:center;gap:8px;width:clamp(92px,13vw,150px);text-align:center}
+.pcol .stk{animation:pop .6s backwards}
+.pcol b{color:var(--onfield);overflow-wrap:anywhere;line-height:1.15}
+.pblock{width:100%;border:3px solid var(--line);border-bottom-width:0;border-radius:14px 14px 0 0;display:grid;place-items:start center;padding-top:8px;font:400 1.8rem var(--disp);color:var(--navy)}
+.p1 .pblock{height:130px;background:var(--yellow)}.p2 .pblock{height:92px;background:#dfe5f5}.p3 .pblock{height:64px;background:#f3a25f}
+.team{display:flex;flex-wrap:wrap;gap:14px}
+.finbtns{display:flex;gap:14px;flex-wrap:wrap}
+.places{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.places li{display:grid;grid-template-columns:2em auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 12px 11px 8px;background:var(--inset);border:2.5px solid var(--line);border-radius:14px}
+.places .pl{font:400 1.5rem var(--disp);text-align:center}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:20}
+.confetti i{position:absolute;top:-20px;width:11px;height:16px;border-radius:3px;animation:fall 2.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+
+@media (max-width:900px){
+  .setup,.racegrid,.fin{grid-template-columns:minmax(0,1fr)}
+  .turncard{min-height:360px}
+  .ticker{min-height:0}
+  .ticker li:nth-last-child(n+4){display:none}
+}
+@media (max-width:620px){
+  body{font-size:16px}
+  .bunting{height:36px;background-size:150px 36px}
+  .modes{grid-template-columns:1fr;margin-top:30px}
+  .mico{width:52px;height:52px;font-size:1.6rem}
+  .rrow{grid-template-columns:auto minmax(0,1fr)}
+  .ropts{grid-column:1/-1;justify-content:flex-start}
+  .panel{padding:14px}
+  .turncard{padding:0}
+  .joinbox{grid-template-columns:minmax(0,1fr)}
+  .codebox b{font-size:2.3rem}
+  .mine{flex-direction:column;align-items:flex-start}
+  .die{width:60px;height:60px;padding:8px 8px 12px;border-radius:15px}
+  .die i{width:10px;height:10px}
+  .dwrap{width:78px}
+  .lane{height:92px}
+  .lane b{font-size:1rem;padding-bottom:11px;border-left-width:2px}
+  .lane .stk{--s:30px!important;top:16px}
+  .cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .startbar .btn{font-size:1.5rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .mcard,.mrays,.mtop .art,.slab.shake,.lane .stk,.tok.zap .tb,.tok.run .tb,.tok.active::after,.die.chg,.die.rolling,.pcol .stk,.burst,.mods li,.ans .wrong{animation:none}
+  .tok,.tok.slide{transition:none}
+}
+
+</style>
+</head>
+<body>
+<div class="bunting" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="top">
+    <button class="brand" id="brand" aria-label="Digit Derby home"><span class="bdie" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Digit Derby</button>
+    <div class="topbtns">
+      <span class="netpill" id="netpill" hidden></span>
+      <button class="btn ghost sm" id="leave" hidden>Leave race</button>
+      <button class="btn ghost sm" id="meet">Meet the racers</button>
+      <button class="btn ghost sm" id="how">How to play</button>
+      <button class="btn ghost sm" id="snd" aria-pressed="true">Sound on</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="home">
+      <div class="hero">
+        <h1>Digit Derby</h1>
+        <p class="lede onfield">Pick a racer, answer a maths question, roll the dice. A right answer rolls a bonus die, and every racer has a power of their own.</p>
+        <div class="lane" id="strip" aria-hidden="true"></div>
+      </div>
+
+      <div id="resume"></div>
+
+      <div class="panel joinbox" id="joinbox" hidden>
+        <div class="jtext"><h2>Got an invite code?</h2><p class="sub">Join a race that someone else has set up.</p></div>
+        <div class="joinrow">
+          <input id="jcode" placeholder="Code" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Invite code">
+          <input id="jname" placeholder="Your name" maxlength="14" autocomplete="off" aria-label="Your name">
+          <button class="btn" id="jgo">Join</button>
+        </div>
+        <p class="jerr" id="jerr" role="alert"></p>
+      </div>
+
+      <div class="modes" role="radiogroup" aria-label="How do you want to play?">
+        <label class="mode"><input type="radio" name="mode" value="versus"><span class="mbody"><span class="mico" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M9 5v31" stroke="#161b3a" stroke-width="4" stroke-linecap="round"/><path d="M11 7h22v16H11z" fill="#fff" stroke="#161b3a" stroke-width="3" stroke-linejoin="round"/><path d="M11 7h7.3v5.3H11zM25.7 7H33v5.3h-7.3zM18.3 12.3h7.400v5.400h-7.400zM11 17.7h7.3V23H11zM25.7 17.7H33V23h-7.3z" fill="#161b3a"/></svg></span><b>Race each other</b><span>First racer across the finish line wins.</span></span></label>
+        <label class="mode"><input type="radio" name="mode" value="coop"><span class="mbody"><span class="mico" aria-hidden="true"><svg viewBox="0 0 40 40"><g stroke="#161b3a" stroke-width="3"><circle cx="13" cy="14" r="6" fill="#e8443c"/><circle cx="27" cy="14" r="6" fill="#2c7cf2"/><path d="M3 35c0-8 4-12 10-12s7 3 7 3s1-3 7-3s10 4 10 12z" fill="#ffc928" stroke-linejoin="round"/></g></svg></span><b>Team up</b><span>Work together to get everyone home before the Eraser wipes the board.</span></span></label>
+      </div>
+
+      <div class="setup">
+        <div class="panel">
+          <h2>Who’s racing?</h2>
+          <p class="sub">Up to 8 racers share this screen and take turns. Tap a racer to swap it.</p>
+          <ul class="rlist" id="rlist"></ul>
+          <div class="addrow">
+            <button class="btn ghost" id="addp">Add a racer</button>
+            <button class="btn ghost" id="addb">Add a computer racer</button>
+          </div>
+          <div class="invite" id="invite" hidden></div>
+        </div>
+
+        <div class="panel">
+          <h2>The maths</h2>
+          <div class="field">
+            <label for="glevel">Level for everyone</label>
+            <select id="glevel"></select>
+            <p class="sub">You can still give each racer their own level in the list.</p>
+          </div>
+          <div class="field">
+            <span class="flabel" id="tlabel">Question types</span>
+            <div class="chips" id="topics" role="group" aria-labelledby="tlabel"></div>
+          </div>
+          <div class="field">
+            <span class="flabel" id="tmlabel">Time to answer</span>
+            <div class="seg" id="timer" role="radiogroup" aria-labelledby="tmlabel"></div>
+          </div>
+          <div class="field">
+            <span class="flabel" id="lnlabel">Race length</span>
+            <div class="seg" id="len" role="radiogroup" aria-labelledby="lnlabel"></div>
+          </div>
+          <div class="field" id="erfield" hidden>
+            <span class="flabel" id="erlabel">Eraser speed</span>
+            <div class="seg" id="eraser" role="radiogroup" aria-labelledby="erlabel"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="startbar">
+        <button class="btn big" id="start">Start the race</button>
+        <p class="onfield" id="starthint"></p>
+      </div>
+    </section>
+
+    <section id="race" hidden>
+      <div class="racegrid">
+        <div class="boardcol">
+          <div class="status" id="status"></div>
+          <div class="slab"><div class="board" id="board"></div></div>
+          <div class="pa"><span aria-hidden="true"><svg viewBox="0 0 40 40" width="34" height="34"><path d="M6 16v8h6l14 8V8L12 16z" fill="#ffc928" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M31 15q4 5 0 10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg></span><ol class="ticker" id="ticker" aria-live="polite" aria-label="What just happened"></ol></div>
+        </div>
+        <aside class="side">
+          <div class="panel turncard" id="turncard"></div>
+          <div class="panel">
+            <h3>Leaderboard</h3>
+            <ol class="standings" id="standings"></ol>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="lobby" hidden></section>
+
+    <section id="finish" hidden></section>
+  </main>
+</div>
+
+<div class="moment" id="moment" hidden></div>
+
+<dialog id="roster" aria-labelledby="rtitle">
+  <div class="dhead">
+    <h2 id="rtitle">Meet the racers</h2>
+    <div class="dbtns">
+      <button class="btn sm" id="surprise">Surprise me</button>
+      <button class="btn ghost sm" data-close>Close</button>
+    </div>
+  </div>
+  <p class="sub" id="rsub">Powers switch on by themselves whenever their rule is met.</p>
+  <div class="cards" id="rgrid"></div>
+</dialog>
+
+<dialog id="howto" aria-labelledby="htitle">
+  <div class="dhead">
+    <h2 id="htitle">How to play</h2>
+    <div class="dbtns"><button class="btn ghost sm" data-close>Close</button></div>
+  </div>
+  <div class="rules">
+    <p><b>Your turn.</b> Answer a maths question, then roll. Everyone rolls the main die. A right answer adds a bonus die, so you move further.</p>
+    <p><b>Your power.</b> Each racer has one power. It switches on by itself whenever its rule is met, and the game shows you when it does.</p>
+    <p><b>Special spaces.</b> <span class="key k-boost">+2</span> boosts you 2 ahead. <span class="key k-slip">−2</span> slips you 2 back. <span class="key k-quiz">?</span> is a pop quiz: get it right for 3 more.</p>
+    <p><b>Race each other.</b> The first racer across the finish line wins.</p>
+    <p><b>Team up.</b> The Eraser chases the team from the start line and wipes spaces as it goes. If it catches a racer, the team spends a stick of chalk to redraw them a little ahead. Get everyone across the line before the chalk runs out. Racers who have finished keep answering questions, and their rolls go to the teammate at the back. Powers that would push other racers back push the Eraser back instead.</p>
+    <p><b>Playing on separate devices.</b> If this copy of the game has online play switched on, one person sets up the race and taps “Let others join”. Everyone else opens the same page, types the invite code and picks a racer. The race runs on the first person’s device, so that device needs to stay open.</p>
+    <p><b>Keys.</b> Press 1, 2, 3 or 4 to pick an answer.</p>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script>
+/* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
+const rnd = n => Math.floor(Math.random() * n);
+const R = (a, b) => a + rnd(b - a + 1);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const r3 = n => Math.round(n * 1000) / 1000;
+const fmt = n => String(r3(n)).replace('-', '−');
+const fr = (n, d) => `<span class="fr"><i>${n}</i><i>${d}</i></span>`;
+const BOX = '<b class="bx">?</b>';
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const isPrime = n => { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; };
+
+/* ---------- questions ---------- */
+function uniqWrongs(ans, cands) {
+  const out = [];
+  for (const c of cands) if (c !== ans && !out.includes(c)) out.push(c);
+  return out.slice(0, 3);
+}
+function Q(html, answer, wrongs) {
+  const opts = shuffle([answer, ...uniqWrongs(answer, wrongs)]);
+  return { html, choices: opts, correct: opts.indexOf(answer), answer };
+}
+function numWrongs(ans, extra = [], o = {}) {
+  const isInt = Math.abs(ans - Math.round(ans)) < 1e-9;
+  const is1 = Math.abs(ans * 10 - Math.round(ans * 10)) < 1e-9;
+  const s = o.step || (isInt ? 1 : is1 ? 0.1 : 0.01);
+  const ok = x => r3(x) !== r3(ans) && (o.neg || ans < 0 || x >= 0) && Number.isFinite(x);
+  const ex = shuffle(extra.map(r3).filter(ok)).slice(0, o.all ? 3 : 2);
+  if (ans < 0) ex.unshift(-ans);
+  const pool = shuffle([ans + s, ans - s, ans + 10 * s, ans - 10 * s, ans + 2 * s, ans - 2 * s]).concat([ans + 3 * s, ans + 4 * s, ans + 5 * s]).map(r3).filter(ok);
+  const out = [];
+  for (const x of ex.concat(pool)) if (!out.includes(x)) out.push(x);
+  return out.slice(0, 3);
+}
+function QN(html, ans, extra, o = {}) {
+  ans = r3(ans);
+  const suf = o.suffix || '';
+  return Q(html, fmt(ans) + suf, numWrongs(ans, extra, o).map(x => fmt(x) + suf));
+}
+
+const GEN = {
+  add(l) {
+    if (l === 1) { const a = R(2, 10), b = R(2, 10); return QN(`${a} + ${b}`, a + b); }
+    if (l === 2) { const a = R(12, 68), b = R(11, 29); return QN(`${a} + ${b}`, a + b, [a + b - 10, a + b + 10]); }
+    if (l === 3) {
+      if (rnd(2)) { const a = R(120, 580), b = R(110, 390); return QN(`${a} + ${b}`, a + b, [a + b - 100, a + b + 10, a + b - 10]); }
+      const a = R(11, 89) / 10, b = R(11, 89) / 10; return QN(`${fmt(a)} + ${fmt(b)}`, a + b, [a + b + 1, a + b - 1]);
+    }
+    const t = rnd(3);
+    if (t === 0) { const a = -R(2, 15), b = R(3, 20); return QN(`${fmt(a)} + ${b}`, a + b, [b - a, -(b - a)], { neg: 1 }); }
+    if (t === 1) { const a = R(101, 899) / 100, b = R(11, 89) / 10; return QN(`${fmt(a)} + ${fmt(b)}`, a + b, [a + b / 10, a + b + 1]); }
+    const a = R(1200, 4800), b = R(1100, 3900); return QN(`${a} + ${b}`, a + b, [a + b + 1000, a + b - 100, a + b + 100]);
+  },
+  sub(l) {
+    if (l === 1) { const b = R(1, 9), a = b + R(1, 10); return QN(`${a} − ${b}`, a - b); }
+    if (l === 2) { const a = R(31, 99), b = R(11, a - 6); return QN(`${a} − ${b}`, a - b, [a - b + 10, a - b - 10]); }
+    if (l === 3) {
+      if (rnd(2)) { const a = R(300, 900), b = R(110, a - 50); return QN(`${a} − ${b}`, a - b, [a - b + 100, a - b + 10, a - b - 10]); }
+      const b = R(11, 59) / 10, a = r3(b + R(11, 39) / 10); return QN(`${fmt(a)} − ${fmt(b)}`, a - b, [a - b + 1, a - b - 1]);
+    }
+    const t = rnd(3);
+    if (t === 0) { const a = R(2, 12), b = a + R(2, 12); return QN(`${a} − ${b}`, a - b, [b - a, a + b], { neg: 1 }); }
+    if (t === 1) { const a = -R(2, 12), b = R(2, 12); return QN(`${fmt(a)} − ${b}`, a - b, [b + a, b - a], { neg: 1 }); }
+    const a = R(2, 12), b = R(2, 9); return QN(`${a} − (−${b})`, a + b, [a - b, -(a + b)], { neg: 1 });
+  },
+  mul(l) {
+    if (l === 1) { const a = pick([2, 5, 10]), b = R(1, 10); return QN(`${b} × ${a}`, a * b, [a + b, a * b + a]); }
+    if (l === 2) { const a = R(2, 10), b = R(3, 12); return QN(`${a} × ${b}`, a * b, [a * b + a, a * b - b, a * (b + 1)]); }
+    if (l === 3) {
+      if (rnd(3) === 0) { const a = R(12, 96), m = pick([10, 100]); return QN(`${a} × ${m}`, a * m, [a * m * 10, a * m / 10, a + m]); }
+      const a = R(12, 49), b = R(3, 9); return QN(`${a} × ${b}`, a * b, [a * b + 10, a * b - b, a * b + b]);
+    }
+    const t = rnd(3);
+    if (t === 0) { const a = R(11, 25), b = R(11, 19); return QN(`${a} × ${b}`, a * b, [a * b + 10, a * b - a, a * b + b, a * b - 10]); }
+    if (t === 1) { const a = R(2, 9) / 10, b = R(3, 9); return QN(`${fmt(a)} × ${b}`, a * b, [a * b * 10, a * b / 10, a + b]); }
+    const a = -R(3, 9), b = R(3, 9), neg2 = rnd(2); return neg2 ? QN(`${fmt(a)} × (−${b})`, -a * b, [a * b, a - b], { neg: 1 }) : QN(`${fmt(a)} × ${b}`, a * b, [-a * b, a + b], { neg: 1 });
+  },
+  div(l) {
+    if (l === 1) {
+      if (rnd(2)) { const n = 2 * R(2, 10); return QN(`Half of ${n}`, n / 2, [n * 2, n - 2]); }
+      const d = pick([2, 5, 10]), q = R(1, 10); return QN(`${d * q} ÷ ${d}`, q, [q + d, d]);
+    }
+    if (l === 2) { const d = R(2, 10), q = R(2, 12); return QN(`${d * q} ÷ ${d}`, q, [q + 1, q - 1, d]); }
+    if (l === 3) { const d = R(3, 9), q = R(11, 25); return QN(`${d * q} ÷ ${d}`, q, [q + 10, q - 10, q + 2]); }
+    const t = rnd(3);
+    if (t === 0) { const d = R(3, 9), q = R(26, 120); return QN(`${d * q} ÷ ${d}`, q, [q + 10, q - 10, q + d]); }
+    if (t === 1) { const d = R(3, 9), q = R(3, 12); return QN(`−${d * q} ÷ ${d}`, -q, [q, -q - 1], { neg: 1 }); }
+    const d = R(2, 6), q = R(11, 29) / 10; return QN(`${fmt(d * q)} ÷ ${d}`, q, [q * 10, q + 1, q / 10]);
+  },
+  frac(l) {
+    if (l === 1) {
+      if (rnd(2)) { const n = 2 * R(2, 10); return QN(`Half of ${n}`, n / 2, [n * 2, n - 2]); }
+      const n = 4 * R(1, 10); return QN(`A quarter of ${n}`, n / 4, [n / 2, n - 4]);
+    }
+    if (l === 2) { const d = pick([2, 3, 4, 5, 10]), k = rnd(3) ? 1 : R(1, d - 1), m = R(2, 10); return QN(`${fr(k, d)} of ${d * m}`, k * m, [m, d * m - k * m, k * m + m, d * m - m]); }
+    if (l === 3) {
+      const t = rnd(3);
+      if (t === 0) { const d = R(5, 12), a = R(1, d - 3), b = R(1, d - a - 1), s = a + b; return Q(`${fr(a, d)} + ${fr(b, d)}`, fr(s, d), [fr(s, 2 * d), fr(s + 1, d), fr(s - 1, d), fr(s + 2, d)]); }
+      const [n, d] = pick([[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [2, 5], [3, 5]]), k = R(2, 5);
+      if (t === 1) return QN(`${fr(BOX, d * k)} = ${fr(n, d)}`, n * k, [n + k, d * k - d + n, n * k + n]);
+      return Q(`Simplify ${fr(n * k, d * k)}`, fr(n, d), [fr(n, d + 1), fr(n + 1, d + 1), n + 1 < d ? fr(n + 1, d) : fr(n, d + 2), fr(n + 1, d + 2)]);
+    }
+    const t = rnd(3);
+    if (t === 0) {
+      const [d1, d2] = shuffle([2, 3, 4, 5, 6]), dd = d1 * d2, nn = d1 + d2, g = gcd(nn, dd), n = nn / g, d = dd / g;
+      return Q(`${fr(1, d1)} + ${fr(1, d2)}`, fr(n, d), [fr(2, d1 + d2), fr(2, dd), n > 1 ? fr(n - 1, d) : fr(n + 2, d), fr(n + 1, d), fr(1, d1 + d2)]);
+    }
+    if (t === 1) { const [n, d, p] = pick([[1, 2, 50], [1, 4, 25], [3, 4, 75], [1, 5, 20], [2, 5, 40], [3, 5, 60], [4, 5, 80], [1, 10, 10], [3, 10, 30], [7, 10, 70], [1, 20, 5]]); return QN(`${fr(n, d)} as a percentage`, p, [n * 10, d * 10, 100 - p, d], { suffix: '%' }); }
+    const d = pick([3, 4, 5, 6, 8]), k = R(2, d - 1), m = R(5, 15); return QN(`${fr(k, d)} of ${d * m}`, k * m, [m, d * m - k * m, k * m + m]);
+  },
+  place(l) {
+    if (l === 1) {
+      const t = rnd(3);
+      if (t === 0) { const a = R(12, 85); return QN(`10 more than ${a}`, a + 10, [a + 1, a + 11]); }
+      if (t === 1) { const a = R(22, 95); return QN(`10 less than ${a}`, a - 10, [a - 1, a + 10]); }
+      const a = R(2, 9), b = R(2, 9); return QN(`${a} tens and ${b} ones`, 10 * a + b, [a + b, 10 * b + a]);
+    }
+    if (l === 2) {
+      const t = rnd(4);
+      if (t === 0) { let n = R(101, 989); if (n % 10 === 0) n += R(1, 9); return QN(`Round ${n} to the nearest 10`, Math.round(n / 10) * 10, [Math.floor(n / 10) * 10, Math.ceil(n / 10) * 10, Math.round(n / 100) * 100], { step: 10 }); }
+      if (t === 1) { let n = R(111, 989); if (n % 100 === 50 || n % 100 === 0) n += R(1, 9); return QN(`Round ${n} to the nearest 100`, Math.round(n / 100) * 100, [Math.round(n / 10) * 10, Math.floor(n / 100) * 100, Math.ceil(n / 100) * 100], { step: 100 }); }
+      if (t === 2) { const ds = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 4), i = rnd(4), n = ds.join(''), v = ds[i] * 10 ** (3 - i); return QN(`What is the ${ds[i]} worth in ${n}?`, v, [ds[i], ds[i] * 10, ds[i] * 100, ds[i] * 1000], { all: 1 }); }
+      const n = R(39, 49) * 100 + R(1, 9) * 10; return QN(`100 more than ${n}`, n + 100, [n + 10, n + 1000, n - 100]);
+    }
+    if (l === 3) {
+      const t = rnd(4);
+      if (t === 0) { let n = R(111, 989); if (n % 100 === 50 || n % 100 === 0) n += R(1, 9); n /= 100; return QN(`Round ${fmt(n)} to the nearest whole number`, Math.round(n), [Math.floor(n), Math.ceil(n), Math.round(n * 10) / 10]); }
+      if (t === 1) { let n = R(111, 989); if (n % 10 === 5 || n % 10 === 0) n++; n /= 100; return QN(`Round ${fmt(n)} to 1 decimal place`, Math.round(n * 10) / 10, [Math.floor(n * 10) / 10, Math.ceil(n * 10) / 10, Math.round(n)], { step: 0.1 }); }
+      if (t === 2) { const a = R(11, 99) / 10, m = pick([10, 100]); return QN(`${fmt(a)} × ${m}`, a * m, [a * m * 10, a * m / 10, a]); }
+      const a = R(12, 98) * 10, m = pick([10, 100]); return QN(`${a} ÷ ${m}`, a / m, [a / m * 10, a / m / 10, a * m]);
+    }
+    const t = rnd(4);
+    if (t === 0) { let n = R(1111, 9889); if (n % 10 === 5 || n % 10 === 0) n++; n /= 1000; return QN(`Round ${fmt(n)} to 2 decimal places`, Math.round(n * 100) / 100, [Math.floor(n * 100) / 100, Math.ceil(n * 100) / 100, Math.round(n * 10) / 10], { step: 0.01 }); }
+    if (t === 1) { const a = R(2, 9) / 100; return QN(`${fmt(a)} × 1000`, a * 1000, [a * 100, a * 10000, a * 10]); }
+    if (t === 2) { let n = R(12, 98) * 1000 + R(1, 9) * 100 + 50; if (n % 1000 === 500) n += 100; return QN(`Round ${n} to the nearest thousand`, Math.round(n / 1000) * 1000, [Math.floor(n / 1000) * 1000, Math.ceil(n / 1000) * 1000, Math.round(n / 100) * 100], { step: 1000 }); }
+    const a = R(12, 98) / 10; return QN(`${fmt(a)} ÷ 100`, a / 100, [a / 10, a / 1000, a * 100]);
+  },
+  alg(l) {
+    if (l === 1) {
+      const t = rnd(3);
+      if (t === 0) { const x = R(2, 9), b = R(2, 9); return QN(`${BOX} + ${b} = ${x + b}`, x, [x + b, x + b + b]); }
+      if (t === 1) { const x = R(1, 8), a = R(1, 9); return QN(`${x + a} − ${BOX} = ${a}`, x, [x + a + a, a]); }
+      const s = R(1, 6), d = pick([1, 2, 5, 10]); return QN(`${[0, 1, 2, 3].map(i => s + i * d).join(', ')}, ${BOX}`, s + 4 * d, [s + 3 * d + 1, s + 5 * d]);
+    }
+    if (l === 2) {
+      const t = rnd(4);
+      if (t === 0) { const x = R(2, 10), a = R(2, 10); return QN(`${BOX} × ${a} = ${x * a}`, x, [x * a - a, a]); }
+      if (t === 1) { const x = R(2, 10), a = R(2, 10); return QN(`${x * a} ÷ ${BOX} = ${a}`, x, [a, x * a - a]); }
+      if (t === 2) { const x = R(20, 60), a = R(11, 29); return QN(`${BOX} − ${a} = ${x - a}`, x, [x - a - a, x - 10, x + 10]); }
+      const d = R(3, 9), up = rnd(2), s = up ? R(2, 12) : R(50, 70), k = up ? d : -d; return QN(`${[0, 1, 2, 3].map(i => s + i * k).join(', ')}, ${BOX}`, s + 4 * k, [s + 5 * k, s + 4 * k + 1, s + 3 * k]);
+    }
+    if (l === 3) {
+      const t = rnd(3);
+      if (t === 0) { const a = R(2, 6), x = R(2, 9), b = R(1, 9); return QN(`${a} × ${BOX} + ${b} = ${a * x + b}`, x, [a * x, x + b, a * x + b - a]); }
+      if (t === 1) { const m = pick([2, 3]), s = R(1, 5); return QN(`${[0, 1, 2, 3].map(i => s * m ** i).join(', ')}, ${BOX}`, s * m ** 4, [s * m ** 3 + s * m ** 2, s * m ** 3 * (m + 1), s * m ** 3 + m]); }
+      const a = R(2, 6), n = R(3, 9), b = R(1, 9); return QN(`If n = ${n}, what is ${a}n − ${b}?`, a * n - b, [a + n - b, a * n + b, a * 10 + n - b]);
+    }
+    const t = rnd(4);
+    if (t === 0) { const a = R(2, 6), x = R(2, 12), b = R(1, 12); return QN(`Solve ${a}x + ${b} = ${a * x + b}`, x, [a * x, x + b, x + a]); }
+    if (t === 1) { const d = R(2, 6), q = R(2, 9), b = R(1, 6); return QN(`Solve x ÷ ${d} − ${b} = ${q - b}`, d * q, [q, d * (q - b), q - b]); }
+    if (t === 2) { const a = R(2, 6), b = R(1, 6), x = b + R(1, 9); return QN(`Solve ${a}(x − ${b}) = ${a * (x - b)}`, x, [x - b, a * (x - b) + b, x + b]); }
+    const x = R(2, 9), a = R(3, 6), c = R(1, a - 2), b = R(1, 9); return QN(`Solve ${a}x − ${b} = ${c === 1 ? '' : c}x + ${(a - c) * x - b}`, x, [x + b, (a - c) * x, x * 2]);
+  },
+  pct(l) {
+    if (l === 1) { if (rnd(2)) { const n = R(1, 10); return QN(`Double ${n}`, 2 * n, [n + 2, n * 2 + 2]); } const n = 2 * R(1, 10); return QN(`Half of ${n}`, n / 2, [n * 2, n - 2]); }
+    if (l === 2) { if (rnd(2)) { const n = R(12, 49); return QN(`Double ${n}`, 2 * n, [2 * n - 10, 2 * n + 10, n + 2]); } const n = 2 * R(11, 49); return QN(`Half of ${n}`, n / 2, [n / 2 + 10, n / 2 - 5, n * 2]); }
+    if (l === 3) {
+      const t = rnd(4);
+      if (t === 0) { const n = 10 * R(2, 50); return QN(`10% of ${n}`, n / 10, [n / 100, n - 10, n / 5]); }
+      if (t === 1) { const n = 2 * R(6, 60); return QN(`50% of ${n}`, n / 2, [n / 2 + 10, n / 2 - 5, n * 2]); }
+      if (t === 2) { const n = 4 * R(2, 50); return QN(`25% of ${n}`, n / 4, [n / 2, n / 4 + 5, n / 4 - 2]); }
+      const [d, p] = pick([[0.5, 50], [0.25, 25], [0.75, 75], [0.1, 10], [0.2, 20], [0.4, 40], [0.05, 5]]); return QN(`${fmt(d)} as a percentage`, p, [d * 10, d * 1000, p + 5, p * 2], { suffix: '%' });
+    }
+    const t = rnd(4), n = 20 * R(1, 12);
+    if (t === 0) return QN(`15% of ${n}`, n * 0.15, [n * 0.1, n * 0.05, n * 0.2, n - 15]);
+    if (t === 1) { const p = pick([5, 20, 30, 35, 60, 75]); return QN(`${p}% of ${n}`, n * p / 100, [n * p / 10, n * (100 - p) / 100, n * (p + 10) / 100]); }
+    if (t === 2) { const p = pick([10, 20, 25, 40, 50, 75]), b = pick([20, 40, 60, 80, 200]), a = p * b / 100; return QN(`What percentage is ${a} out of ${b}?`, p, [a, b - a, 100 - p, p + 10], { suffix: '%' }); }
+    const p = pick([10, 20, 25, 50]); return QN(`Increase ${n} by ${p}%`, n * (100 + p) / 100, [n + p, n * p / 100, n * (100 - p) / 100]);
+  },
+  order(l) {
+    if (l === 1) { const a = R(1, 9), b = R(1, 9), c = R(1, 9); return QN(`${a} + ${b} + ${c}`, a + b + c, [a + b, b + c + 10]); }
+    if (l === 2) {
+      if (rnd(2)) { const a = R(10, 20), b = R(2, 9), c = R(2, 9); return QN(`${a} − ${b} + ${c}`, a - b + c, [a - b - c, a + b + c]); }
+      const a = R(2, 5), b = R(2, 5), c = R(1, 9); return QN(`${a} × ${b} + ${c}`, a * b + c, [a * (b + c), a + b + c]);
+    }
+    if (l === 3) {
+      const t = rnd(3), a = R(2, 9), b = R(2, 6), c = R(2, 6);
+      if (t === 0) return QN(`${a} + ${b} × ${c}`, a + b * c, [(a + b) * c, a * b + c]);
+      if (t === 1) return QN(`(${a} + ${b}) × ${c}`, (a + b) * c, [a + b * c, a * c + b]);
+      const q = R(2, 6), big = q + R(3, 15); return QN(`${big} − ${q * c} ÷ ${c}`, big - q, [big - q * c, big - q + 1, big + q]);
+    }
+    const t = rnd(4), a = R(2, 6), b = R(2, 6), c = R(2, 6);
+    if (t === 0) return QN(`${a}² + ${b} × ${c}`, a * a + b * c, [(a * a + b) * c, 2 * a + b * c, a * a + b + c]);
+    if (t === 1) { const d = R(1, 5), e = R(1, 9); return QN(`(${a + d} − ${d})² − ${e}`, a * a - e, [2 * a - e, a * a + e, (a + d) ** 2 - d * d - e], { neg: 1 }); }
+    if (t === 2) { const s = b + c, k = R(2, 5); return QN(`${s * k} ÷ (${b} + ${c}) × ${a}`, k * a, [k + a, s * k / b + c * a, k * a + a]); }
+    const big = b + R(1, 6); return QN(`${a} × (${b} − ${big})`, a * (b - big), [a * (big - b), a * b - big], { neg: 1 });
+  },
+};
+const TOPICS = [
+  ['add', 'Addition'], ['sub', 'Subtraction'], ['mul', 'Multiplication'], ['div', 'Division'],
+  ['frac', 'Fractions'], ['place', 'Place value and rounding'], ['alg', 'Missing numbers and patterns'],
+  ['pct', 'Doubles, halves and percentages'], ['order', 'Multi-step and order of operations'],
+];
+const LEVELS = [
+  { n: 1, name: 'Level 1', hint: 'around Years 1–2' }, { n: 2, name: 'Level 2', hint: 'around Years 3–4' },
+  { n: 3, name: 'Level 3', hint: 'around Years 5–6' }, { n: 4, name: 'Level 4', hint: 'around Years 7–8' },
+];
+function makeQuestion(topics, level) {
+  const t = pick(topics && topics.length ? topics : ['add']);
+  for (let i = 0; i < 6; i++) { const q = GEN[t](level); if (q.choices.length === 4 && q.correct >= 0) return q; }
+  const a = R(2, 9), b = R(2, 9); return QN(`${a} + ${b}`, a + b);
+}
+
+/* ---------- racers and their powers ---------- */
+const mod = (c, t, n) => c.mods.push({ t, n });
+const alive = G => G.racers.filter(r => !r.finished);
+function isLast(G, r) { const a = alive(G); if (a.length < 2) return false; const ps = a.map(x => x.pos), mn = Math.min(...ps); return r.pos === mn && mn < Math.max(...ps); }
+function leaders(G, me) { const a = alive(G); if (!a.length) return []; const mx = Math.max(...a.map(x => x.pos)); if (me.pos >= mx) return []; return a.filter(x => x.pos === mx); }
+
+const CHARS = [
+  { id: 'prime', name: 'Prime Minister', e: '🦉', power: 'Prime Time', text: 'Roll a prime number total (2, 3, 5, 7 or 11) and move 3 more.',
+    total(G, r, c) { if (isPrime(c.sum)) mod(c, 'Prime Time', 3); } },
+  { id: 'even', name: 'Even Steven', e: '🦓', power: 'Even Stripes', text: 'Roll an even total and move 2 more.',
+    total(G, r, c) { if (c.sum % 2 === 0) mod(c, 'Even Stripes', 2); } },
+  { id: 'odd', name: 'Oddball', e: '🦎', power: 'Odd Socks', text: 'Roll an odd total and move 2 more.',
+    total(G, r, c) { if (c.sum % 2) mod(c, 'Odd Socks', 2); } },
+  { id: 'double', name: 'Double Trouble', e: '🐒', power: 'Seeing Double', text: 'Roll two dice that match and your move is doubled. A matching pair of 1s, 2s or 3s also adds 2.',
+    total(G, r, c) { if (c.dice.length > 1 && c.dice[0].v === c.dice[1].v) mod(c, 'Seeing Double', c.sum + (c.dice[0].v <= 3 ? 2 : 0)); } },
+  { id: 'inf', name: 'Infinity Snake', e: '🐍', power: 'Never-Ending', text: 'Every 6 you roll gets rolled again and added on.',
+    dice(G, r, c) { for (const d of c.dice) { let last = d.v, n = 0; while (last === 6 && n < 2) { last = R(1, 6); d.v += last; n++; } if (n) d.note = '6s rolled again'; } } },
+  { id: 'flip', name: 'Flip the Butterfly', e: '🦋', power: 'Reflection', text: 'Any 1 you roll flips over to a 6.',
+    dice(G, r, c) { for (const d of c.dice) if (d.v === 1) { d.v = 6; d.note = '1 flipped to 6'; } } },
+  { id: 'times', name: 'Times Tiger', e: '🐯', power: 'Times It', text: 'Answer right and your two dice multiply instead of add, whenever that’s bigger (up to 11).',
+    total(G, r, c) { if (c.correct && c.dice.length > 1) { const p = Math.min(11, c.dice[0].v * c.dice[1].v); if (p > c.sum) mod(c, `Times It (${c.dice[0].v} × ${c.dice[1].v})`, p - c.sum); } } },
+  { id: 'expo', name: 'Exponent Elephant', e: '🐘', power: 'Squared', text: 'Answer right and a 2 or 3 on your main die gets squared: 2 becomes 4, 3 becomes 9.',
+    dice(G, r, c) { const d = c.dice[0]; if (c.correct && (d.v === 2 || d.v === 3)) { d.note = `${d.v}² = ${d.v * d.v}`; d.v *= d.v; } } },
+  { id: 'round', name: 'Rounding Robin', e: '🐦', power: 'Round Up', text: 'Your total rounds up to the next multiple of 5 whenever it’s 1, 2 or 3 short.',
+    total(G, r, c) { const m = c.sum % 5; if (m >= 2) mod(c, `Round Up to ${c.sum + 5 - m}`, 5 - m); } },
+  { id: 'dot', name: 'Dot the Ladybird', e: '🐞', power: 'Do-Over', text: 'Any die that shows a 1 or 2 gets rolled again, and you keep the better number.',
+    dice(G, r, c) { for (const d of c.dice) if (d.v <= 2) { const o = d.v; d.v = Math.max(o, R(1, d.sides)); d.note = `${o} rolled again`; } } },
+  { id: 'cat', name: 'Coordinate Cat', e: '🐱', power: 'Pick a Point', text: 'Roll two main dice and keep the higher one. If they match, move 2 more.',
+    dice(G, r, c) { const d = c.dice[0], x = R(1, 6); d.note = `Best of ${d.v} and ${x}`; c.pair = d.v === x; d.v = Math.max(d.v, x); },
+    total(G, r, c) { if (c.pair) mod(c, 'Pick a Point (matching pair)', 2); } },
+  { id: 'root', name: 'Root Rabbit', e: '🐰', power: 'Big Hop', text: 'Your bonus die has 8 sides, and it always counts for at least 3.',
+    setup(G, r, c) { c.bonusSides = 8; },
+    dice(G, r, c) { for (const d of c.dice) if (d.kind === 'bonus' && d.v < 3) { d.note = `${d.v} hops up to 3`; d.v = 3; } } },
+  { id: 'goat', name: 'Googol Goat', e: '🐐', power: 'Go Big', text: 'Roll a total of 8 or more and move 3 more.',
+    total(G, r, c) { if (c.sum >= 8) mod(c, 'Go Big', 3); } },
+  { id: 'gus', name: 'Abacus Gus', e: '🐛', power: 'Count On Me', text: 'You never move fewer than 6 spaces on your roll.',
+    total(G, r, c) { if (c.sum < 6) mod(c, 'Count On Me', 6 - c.sum); } },
+  { id: 'uni', name: 'Unit Unicorn', e: '🦄', power: 'One of a Kind', text: 'Roll a 1 on your main die and you get another turn.',
+    after(G, r, c) { if (c.dice[0].orig === 1) c.again = 'One of a Kind'; } },
+  { id: 'trex', name: 'Tri-Rex', e: '🦖', power: 'Rule of Three', text: 'Every third turn you roll one extra die.',
+    setup(G, r, c) { if (r.turns % 3 === 0) c.powerDice = 1; } },
+  { id: 'dragon', name: 'Fraction Dragon', e: '🐉', power: 'Half Again', text: 'Answer right and add half of your main die again (rounded down).',
+    total(G, r, c) { const h = Math.floor(c.dice[0].v / 2); if (c.correct && h) mod(c, 'Half Again', h); } },
+  { id: 'octo', name: 'Octo-Plus', e: '🐙', power: 'Eight Arms', text: 'Roll a total of exactly 8 and move 8 more.',
+    total(G, r, c) { if (c.sum === 8) mod(c, 'Eight Arms', 8); } },
+  { id: 'fox', name: 'Fibonacci Fox', e: '🦊', power: 'Golden Streak', text: 'Right answers in a row build a bonus: 2 in a row adds 1, 3 in a row adds 2, 4 or more adds 3.',
+    total(G, r, c) { const b = [0, 0, 1, 2, 3][Math.min(4, r.streak)]; if (c.correct && b) mod(c, `Golden Streak (${r.streak} in a row)`, b); } },
+  { id: 'sloth', name: 'Sigma Sloth', e: '🦥', power: 'Sum It Up', text: 'Gains 1 extra space per move, for good, after every 2 right answers (up to 3 extra).',
+    total(G, r, c) { const n = Math.min(3, Math.floor(r.correct / 2)); if (n) mod(c, 'Sum It Up', n); } },
+  { id: 'percy', name: 'Percy Percent', e: '🐧', power: 'Full Marks', text: 'Every 4th right answer earns another turn straight away.',
+    after(G, r, c) { if (c.correct && r.correct % 4 === 0) c.again = 'Full Marks'; } },
+  { id: 'giraffe', name: 'Graph Giraffe', e: '🦒', power: 'Above the Line', harder: true, text: 'Your questions are one level harder, but a right answer moves you 2 more.',
+    total(G, r, c) { if (c.correct) mod(c, 'Above the Line', 2); } },
+  { id: 'croc', name: 'Tick-Tock Croc', e: '🐊', power: 'Quick Snap', text: 'Answer right in under 7 seconds and move 2 more.',
+    total(G, r, c) { if (c.correct && c.ms < 7000) mod(c, 'Quick Snap', 2); } },
+  { id: 'roo', name: 'Rebound Roo', e: '🦘', power: 'Bounce Back', text: 'After a miss, your next right answer rolls two bonus dice and adds 1. Your very first right answer does too.',
+    setup(G, r, c) { if (c.correct && (c.prevMiss || r.correct === 1)) { c.bonusN = 2; c.pre = 1; } },
+    total(G, r, c) { if (c.pre) mod(c, 'Bounce Back', 1); } },
+  { id: 'badger', name: 'Subtract Badger', e: '🦡', power: 'Take Away', text: 'Answer right and you move 1 more, while the leader slides back 1 (unless that’s you).',
+    async answer(G, r, c) { if (!c.correct) return; const L = leaders(G, r); if (G.mode === 'coop' || L.length) await hinder(G, r, L, 1, 'Take Away'); },
+    total(G, r, c) { if (c.correct) mod(c, 'Take Away', 1); } },
+  { id: 'panda', name: 'Plus Panda', e: '🐼', power: 'Add On', text: 'Answer right and you move 1 more. Whoever is in last place moves 2 more as well, and that can be you.',
+    async answer(G, r, c) { if (!c.correct) return; const o = alive(G).sort((a, b) => a.pos - b.pos)[0]; if (o && o !== r && o.pos < r.pos) { await ui.power(G, r, 'Add On'); await shift(G, o, 2, 'Add On', 'power'); } else if (c.wasLast) c.pre = 2; },
+    total(G, r, c) { if (c.correct) mod(c, 'Add On', 1 + (c.pre || 0)); } },
+  { id: 'raccoon', name: 'Remainder Raccoon', e: '🦝', power: 'Leftovers', text: 'When the racer before you rolls a 1 or 2 on their main die, you move 3.',
+    async onOtherRoll(G, me, r, c) { const n = G.order.length, nxt = G.racers[G.order[(G.order.indexOf(r.id) + 1) % n]]; if (nxt === me && c.dice[0].orig <= 2) { await ui.power(G, me, 'Leftovers'); await shift(G, me, 3, 'Leftovers', 'power'); } } },
+  { id: 'shark', name: 'Pi-rate Shark', e: '🦈', power: 'Slice of Pi', text: 'Roll a 3 and plunder: you move 3 more and the leader slides back 2.',
+    total(G, r, c) { if (c.dice.some(d => d.orig === 3)) { mod(c, 'Slice of Pi', 3); c.plunder = true; } },
+    async rolled(G, r, c) { if (c.plunder) await hinder(G, r, leaders(G, r), 2, 'Slice of Pi'); } },
+  { id: 'bee', name: 'Hex Bee', e: '🐝', power: 'Six Sides', text: 'Roll a 6 and you move 2 more, while every racer ahead of you slides back 2.',
+    total(G, r, c) { c.six = c.dice.some(d => d.orig === 6); if (c.six) mod(c, 'Six Sides', 2); },
+    async rolled(G, r, c) { if (c.six) await hinder(G, r, alive(G).filter(o => o !== r && o.pos > r.pos), 2, 'Six Sides'); } },
+  { id: 'rhino', name: 'Dividing Rhino', e: '🦏', power: 'Split the Pack', text: 'Every racer you pass on your move slides back 2, and you charge 1 more.',
+    async moved(G, r, c) { if (c.passed.length) { await hinder(G, r, c.passed, 2, 'Split the Pack'); await shift(G, r, 1, 'Split the Pack', 'power'); } } },
+  { id: 'angler', name: 'Acute Angler', e: '🐠', power: 'Reel In', text: 'Pass a racer on your move and reel in 2 more, plus 1 for each extra racer you pass (up to 3).',
+    async moved(G, r, c) { if (c.passed.length) { await ui.power(G, r, 'Reel In'); await shift(G, r, Math.min(3, c.passed.length + 1), 'Reel In', 'power'); } } },
+  { id: 'crab', name: 'Calculator Crab', e: '🦀', power: 'Sidestep', text: 'When a racer passes you or lands on your space, scuttle forward 2 (once a round).',
+    async onPassed(G, me) { if (!me.mem.crab) { me.mem.crab = 1; await ui.power(G, me, 'Sidestep'); await shift(G, me, 2, 'Sidestep', 'power'); } } },
+  { id: 'polly', name: 'Polly Gon', e: '🦜', power: 'Copycat', text: 'If the racer before you rolled a higher main die, you use their number and move 1 more.',
+    dice(G, r, c) { const d = c.dice[0]; if (G.last && G.last.by !== r.id && G.last.main > d.v) { d.note = `Copied a ${G.last.main}`; d.v = G.last.main; c.copied = true; } },
+    total(G, r, c) { if (c.copied) mod(c, 'Copycat', 1); } },
+  { id: 'zero', name: 'Zero the Hero', e: '🐣', power: 'Nothing to Lose', text: 'Start your turn in last place and move 3 more. In a race of five or more, the whole back half of the pack gets 2 more.',
+    total(G, r, c) { const a = alive(G), n = a.length; if (c.wasLast) mod(c, 'Nothing to Lose', n === 2 ? 2 : 3); else if (n >= 5 && a.filter(o => o.pos > c.startPos).length >= n / 2) mod(c, 'Nothing to Lose', 2); } },
+  { id: 'mouse', name: 'Median Mouse', e: '🐭', power: 'Middle Ground', text: 'Start your turn behind the leader and you first scurry a quarter of the way to them.',
+    async start(G, r, c) { const L = leaders(G, r); const d = L.length ? Math.floor((L[0].pos - r.pos) / 4) : 0; if (d > 0) { await ui.power(G, r, 'Middle Ground'); await shift(G, r, d, 'Middle Ground', 'power'); } } },
+  { id: 'llama', name: 'Tally Llama', e: '🦙', power: 'High Five', text: 'Land on a multiple of 5 and gallop 3 more. Any other landing spot hops you 1 more.',
+    async land(G, r) { const five = r.pos % 5 === 0; if (five) await ui.power(G, r, 'High Five'); await shift(G, r, five ? 3 : 1, five ? 'High Five' : 'llama trot', 'power'); return five; } },
+  { id: 'bear', name: 'Square Bear', e: '🐻', power: 'Perfect Square', text: 'Land on a square number (1, 4, 9, 16, 25, 36, 49, 64) and spring 4 more. Any other landing spot hops you 1 more.',
+    async land(G, r) { const sq = Number.isInteger(Math.sqrt(r.pos)); if (sq) await ui.power(G, r, 'Perfect Square'); await shift(G, r, sq ? 4 : 1, sq ? 'Perfect Square' : 'bear shuffle', 'power'); return sq; } },
+  { id: 'falcon', name: 'Vector Falcon', e: '🦅', power: 'Slipstream', text: 'Start your turn with a racer 1 to 5 spaces ahead and move 2 more.',
+    total(G, r, c) { if (alive(G).some(o => o !== r && o.pos > c.startPos && o.pos <= c.startPos + 5)) mod(c, 'Slipstream', 2); } },
+  { id: 'bat', name: 'Count Downula', e: '🦇', power: 'Countdown', text: 'Move 1 more once you’re a quarter of the way along, and 2 more once you’re past halfway.',
+    total(G, r, c) { const n = c.startPos >= G.len / 2 ? 2 : c.startPos >= G.len / 4 ? 1 : 0; if (n) mod(c, 'Countdown', n); } },
+  { id: 'otter', name: 'Opposite Otter', e: '🦦', power: 'Flip the Sign', text: 'Whenever you’d be sent backwards, you go forwards instead. Odd totals on your roll add 1.',
+    total(G, r, c) { if (c.sum % 2) mod(c, 'Flip the Sign', 1); } },
+];
+const CH = {}; CHARS.forEach((c, i) => { CH[c.id] = c; c.hue = (i * 47 + 8) % 360; });
+
+/* ---------- moving ---------- */
+async function finish(G, r) {
+  if (r.finished) return;
+  r.finished = true; G.finishOrder.push(r.id);
+  if (G.mode === 'versus') { G.over = true; G.result = 'win'; }
+  else { await ui.say(G, `${r.name} crosses the line and starts cheering for the team.`, 'good'); if (!alive(G).length) { G.over = true; G.result = 'win'; } }
+}
+async function shift(G, r, d, why, kind) {
+  if (r.finished || G.over || !d) return 0;
+  if (d < 0 && r.charId === 'otter') { d = -d; why = `Flip the Sign (${why})`; kind = 'power'; }
+  const from = r.pos, to = Math.max(0, Math.min(G.len, from + d));
+  if (to === from) return 0;
+  r.pos = to;
+  await ui.move(G, r, from, to, kind, why);
+  if (to >= G.len) await finish(G, r);
+  return to - from;
+}
+async function hinder(G, src, targets, n, why) {
+  await ui.power(G, src, why);
+  if (G.mode === 'coop') {
+    if (G.eraser > 0) { const f = G.eraser; G.eraser = Math.max(0, f - n); await ui.eraser(G, f, G.eraser, `${why} pushes the Eraser back ${f - G.eraser}.`); }
+    return;
+  }
+  for (const t of targets) if (!G.over) await shift(G, t, -n, why, 'push');
+}
+async function advance(G, r, n, c) {
+  const from = r.pos, to = Math.min(G.len, from + n);
+  const others = alive(G).filter(o => o !== r);
+  c.passed = others.filter(o => o.pos > from && o.pos < to);
+  const met = others.filter(o => o.pos === to && to < G.len);
+  r.pos = to;
+  await ui.move(G, r, from, to, 'dice');
+  if (to >= G.len) { await finish(G, r); return; }
+  for (const o of c.passed.concat(met)) { const C = CH[o.charId]; if (C.onPassed && !G.over) await C.onPassed(G, o, r); }
+}
+async function ask(G, r, level, meta) {
+  const q = makeQuestion(G.topics, level);
+  const a = await ui.ask(G, r, q, meta || {});
+  r.asked++; if (a.correct) r.correct++;
+  return a;
+}
+async function landing(G, r, c) {
+  const C = CH[r.charId];
+  if (C.land && await C.land(G, r, c)) return;
+  if (G.over || r.finished) return;
+  const t = G.tiles[r.pos];
+  if (t === 'boost') { await ui.say(G, `${r.name} lands on a boost space.`, 'good'); await shift(G, r, 2, 'Boost space', 'boost'); }
+  else if (t === 'slip') { await ui.say(G, `${r.name} lands on a slip space.`, 'bad'); await shift(G, r, -2, 'Slip space', 'slip'); }
+  else if (t === 'quiz') {
+    await ui.say(G, `${r.name} lands on a pop quiz space: a right answer is worth 3 more.`);
+    const a = await ask(G, r, r.level, { quiz: true });
+    if (a.correct) await shift(G, r, 3, 'Pop quiz', 'boost');
+  }
+}
+
+/* ---------- a turn ---------- */
+async function takeTurn(G, r, depth) {
+  const helper = r.finished, C = helper ? {} : CH[r.charId];
+  r.turns++; r.mem.crab = 0;
+  const c = { depth, helper, correct: false, ms: 0, bonusN: 1, bonusSides: 6, powerDice: 0, dice: [], mods: [], passed: [], wasLast: isLast(G, r), prevMiss: !!r.lastMiss, startPos: r.pos, again: null };
+  await ui.turn(G, r, c);
+  if (C.start) await C.start(G, r, c);
+  if (G.over) return;
+  c.startPos = r.pos;
+  const a = await ask(G, r, Math.min(4, r.level + (C.harder ? 1 : 0)), { harder: !!C.harder });
+  c.correct = a.correct; c.ms = a.ms;
+  r.streak = a.correct ? r.streak + 1 : 0; r.lastMiss = !a.correct;
+  if (C.answer) await C.answer(G, r, c);
+  if (G.over) return;
+  if (C.setup) C.setup(G, r, c);
+  const die = (sides, kind) => { const v = R(1, sides); return { v, orig: v, sides, kind, note: '' }; };
+  c.dice.push(die(6, 'main'));
+  if (c.correct) for (let i = 0; i < c.bonusN; i++) c.dice.push(die(c.bonusSides, 'bonus'));
+  for (let i = 0; i < c.powerDice; i++) c.dice.push(die(6, 'power'));
+  if (C.dice) C.dice(G, r, c);
+  c.sum = c.dice.reduce((s, d) => s + d.v, 0);
+  if (C.total) C.total(G, r, c);
+  c.move = Math.max(1, c.sum + c.mods.reduce((s, m) => s + m.n, 0));
+  G.last = { main: c.dice[0].v, by: r.id };
+  await ui.roll(G, r, c);
+  if (C.rolled) await C.rolled(G, r, c);
+  for (const o of G.racers) { const OC = CH[o.charId]; if (o !== r && !o.finished && OC.onOtherRoll && !G.over) await OC.onOtherRoll(G, o, r, c); }
+  if (G.over) return;
+  if (helper) {
+    const t = alive(G).sort((x, y) => x.pos - y.pos)[0];
+    if (t) { await ui.say(G, `${r.name} cheers ${t.name} on for ${c.move}.`, 'good'); await shift(G, t, c.move, 'Team cheer', 'boost'); }
+  } else {
+    await advance(G, r, c.move, c);
+    if (!G.over && !r.finished && C.moved) await C.moved(G, r, c);
+    if (!G.over && !r.finished) await landing(G, r, c);
+  }
+  if (G.over || r.finished) return;
+  if (C.after) C.after(G, r, c);
+  if (c.again && depth < 2) { await ui.power(G, r, c.again); await ui.say(G, `${r.name} takes another turn.`, 'good'); return takeTurn(G, r, depth + 1); }
+}
+
+const ERASER = [{ name: 'Gentle', sides: 6, add: 3 }, { name: 'Steady', sides: 6, add: 4 }, { name: 'Fierce', sides: 6, add: 5 }];
+async function eraserTurn(G) {
+  if (G.round <= 2) { await ui.say(G, 'The Eraser is waking up. It starts chasing next round.', 'bad'); return; }
+  const E = ERASER[G.eraserLvl], roll = R(1, E.sides), from = G.eraser;
+  G.eraser = Math.min(G.len - 1, from + roll + E.add);
+  await ui.eraser(G, from, G.eraser, `The Eraser rolls ${roll} and wipes ${G.eraser - from} spaces.`);
+  for (const r of alive(G)) {
+    if (G.over) break;
+    if (r.pos <= G.eraser) {
+      G.chalk--;
+      if (G.chalk <= 0) { await ui.say(G, `The Eraser catches ${r.name} and the last stick of chalk snaps.`, 'bad'); G.over = true; G.result = 'lose'; break; }
+      await ui.say(G, `The Eraser catches ${r.name}. The team spends a stick of chalk to redraw them.`, 'bad');
+      await shift(G, r, G.eraser + 3 - r.pos, 'Redrawn', 'boost');
+    }
+  }
+}
+
+function makeTiles(len) {
+  const tiles = {}, spots = shuffle(Array.from({ length: len - 7 }, (_, i) => i + 4)), n = Math.round(len / 12);
+  ['boost', 'slip', 'quiz'].forEach((k, j) => { for (let i = 0; i < n; i++) tiles[spots[j * n + i]] = k; });
+  return tiles;
+}
+function newGame(S) {
+  const racers = S.racers.map((p, i) => ({ id: i, name: (p.name || '').trim() || `Racer ${i + 1}`, charId: p.charId, level: p.level, bot: !!p.bot, owner: p.owner || '', pos: 0, streak: 0, correct: 0, asked: 0, turns: 0, lastMiss: false, finished: false, mem: {} }));
+  return { mode: S.mode, len: S.len, topics: S.topics.slice(), timer: S.timer, racers, order: shuffle(racers.map(r => r.id)), ti: 0, round: 1, over: false, result: null, tiles: makeTiles(S.len), eraser: 0, eraserLvl: S.eraser, chalk: 3 + Math.max(0, Math.floor((racers.length - 2) / 3)), finishOrder: [], last: null };
+}
+async function runGame(G) {
+  while (!G.over) {
+    ui.save(G);
+    await takeTurn(G, G.racers[G.order[G.ti]], 0);
+    if (G.over) break;
+    G.ti++;
+    if (G.ti >= G.order.length) { G.ti = 0; G.round++; if (G.mode === 'coop') await eraserTurn(G); }
+  }
+  await ui.end(G);
+}
+if (typeof module !== 'undefined') module.exports = { CHARS, CH, GEN, TOPICS, LEVELS, makeQuestion, newGame, runGame, setUI: u => { globalThis.ui = u; } };
+
+/* ===== Digit Derby racer drawings (one shared kit, 40 faces) ===== */
+const ART = (() => {
+  const K = '#161b3a';
+  const st = (w = 4, c = K) => `stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+  const C = (x, y, r, f, w) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" ${st(w)}/>`;
+  const E = (x, y, rx, ry, f, rot, w) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}" ${st(w)}${rot ? ` transform="rotate(${rot} ${x} ${y})"` : ''}/>`;
+  const F = (x, y, rx, ry, f, rot) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}"${rot ? ` transform="rotate(${rot} ${x} ${y})"` : ''}/>`;
+  const P = (d, f = 'none', w) => `<path d="${d}" fill="${f}" ${st(w)}/>`;
+  const FP = (d, f) => `<path d="${d}" fill="${f}"/>`;
+  const S = (d, c = K, w = 4) => `<path d="${d}" fill="none" ${st(w, c)}/>`;
+  const D = (x, y, r, f = K) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"/>`;
+  const RR = (x, y, w, h, r, f) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}" ${st()}/>`;
+  const T = (x, y, s, t, f = K) => `<text x="${x}" y="${y}" font-size="${s}" font-family="'Bagel Fat One','Arial Black',sans-serif" text-anchor="middle" fill="${f}">${t}</text>`;
+  const eyes = (dx = 13, y = 52, r = 4.4) => D(50 - dx, y, r) + D(50 + dx, y, r) + D(50 - dx + 1.5, y - 1.6, r * 0.33, '#fff') + D(50 + dx + 1.5, y - 1.6, r * 0.33, '#fff');
+  const blush = (dx = 21, y = 62, r = 4.5) => `<g opacity=".75">${D(50 - dx, y, r, '#ff8fa8')}${D(50 + dx, y, r, '#ff8fa8')}</g>`;
+  const smile = (y = 66, w = 6) => S(`M${50 - w} ${y}q${w} ${w * 0.9} ${2 * w} 0`, K, 3);
+  const wmouth = (y = 66, w = 5) => S(`M${50 - w} ${y}q${w / 2} ${w * 0.9} ${w} 0q${w / 2} ${w * 0.9} ${w} 0`, K, 3);
+  const badge = (t, x = 81, y = 21, f = '#ffc928') => C(x, y, 12, f, 3) + T(x, y + 6.5, 17, t);
+  const mir = s => s + `<g transform="translate(100 0) scale(-1 1)">${s}</g>`;
+
+  const A = {
+    prime: () => mir(P('M26 40L20 18L42 30Z', '#9c6233')) + C(50, 58, 29, '#b9793f') + C(38, 54, 11.5, '#f6e3c0', 3) + C(62, 54, 11.5, '#f6e3c0', 3) + eyes(12, 54, 4.6)
+      + P('M50 58l-5 7h10z', '#ffb52e', 3) + S('M44 76l3 3l3 -3l3 3l3 -3', '#f6e3c0', 2.5) + RR(36, 6, 28, 22, 3, '#2b2f4a') + FP('M38 20h24v5h-24z', '#e8443c') + S('M28 29h44', K, 6),
+    even: () => mir(E(31, 26, 7, 12, '#fff', -22)) + E(50, 56, 25, 31, '#fff') + FP('M43 26q7 -9 14 0q-2 8 -7 9q-5 -1 -7 -9z', K) + mir(S('M27 46q8 1 11 -3M26 58q8 -1 10 -4M29 70q6 -2 8 -5', K, 4))
+      + E(50, 76, 16, 11, '#474c6e') + D(44, 76, 2.2, '#fff') + D(56, 76, 2.2, '#fff') + eyes(11, 52),
+    odd: () => E(50, 58, 33, 26, '#55d273') + D(30, 66, 3.5, '#2fae52') + D(70, 62, 4.5, '#2fae52') + D(62, 74, 3, '#2fae52') + C(33, 40, 13, '#fff') + C(67, 43, 9.5, '#fff') + D(35, 41, 5.5) + D(66, 44, 3.6)
+      + S('M30 66q20 14 40 0', K, 3.5) + D(46, 56, 1.6) + D(54, 56, 1.6),
+    double: () => mir(C(21, 54, 10, '#8a5a3c') + D(21, 54, 5, '#f2c9a0')) + C(50, 54, 29, '#8a5a3c') + F(40, 50, 12, 12, '#f2c9a0') + F(60, 50, 12, 12, '#f2c9a0') + F(50, 64, 20, 15, '#f2c9a0')
+      + eyes(10, 50) + D(47, 60, 1.5) + D(53, 60, 1.5) + smile(66, 8) + S('M44 26q6 -8 12 0', K, 3.5) + badge('×2'),
+    inf: () => S('M50 66c-9 -15 -30 -15 -30 0s21 15 30 0s30 -15 30 0s-21 15 -30 0', K, 17) + S('M50 66c-9 -15 -30 -15 -30 0s21 15 30 0s30 -15 30 0s-21 15 -30 0', '#58c94a', 10)
+      + S('M30 55l5 3M26 74l5 -3M70 55l-5 3', '#3c9f33', 3) + C(71, 36, 15, '#58c94a') + D(65, 34, 3.4) + D(77, 34, 3.4) + D(66, 33, 1.1, '#fff') + D(78, 33, 1.1, '#fff') + S('M71 44v7l-3 4M71 51l3 4', '#e8443c', 2.5) + S('M66 42q5 3 10 0', K, 2.5),
+    flip: () => mir(E(30, 42, 18, 21, '#ff8a3c', -14) + E(33, 70, 13, 13, '#ffc928', 14) + D(27, 38, 5, '#fff') + D(33, 71, 3.5, '#fff')) + E(50, 58, 6.5, 22, '#3a2b52') + C(50, 31, 9.5, '#3a2b52')
+      + mir(S('M46 23q-5 -12 -12 -9', K, 3)) + D(46.5, 30, 2, '#fff') + D(53.5, 30, 2, '#fff') + S('M47 35q3 2 6 0', '#fff', 1.8),
+    times: () => mir(C(27, 30, 10, '#ff9a2e') + D(27, 30, 4.5, '#ffd9a8')) + C(50, 56, 30, '#ff9a2e') + F(50, 68, 16, 12, '#fff') + S('M44 30l12 12M56 30l-12 12', K, 4.5) + mir(S('M21 52l9 2M21 61l9 0', K, 4))
+      + eyes(13, 53) + P('M46 61h8l-4 5z', '#ff6b8a', 2.5) + wmouth(67, 5),
+    expo: () => mir(E(20, 50, 15, 22, '#93a8d3')) + C(50, 50, 26, '#b9c9ea') + P('M41 58c0 12 -3 30 9 32c11 2 12 -10 5 -12c-2 6 -5 -2 -4 -20z', '#b9c9ea') + FP('M43 56h14v8h-14z', '#b9c9ea') + eyes(13, 47)
+      + mir(P('M36 66q-4 8 -2 12', '#fff', 3)) + badge('x²'),
+    round: () => mir(E(22, 62, 6, 13, '#6f543c', 14)) + C(50, 56, 30, '#8b6b4f') + F(50, 68, 19, 16, '#ff5a45') + eyes(11, 46) + P('M45 53h10l-5 8z', '#ffb52e', 3) + S('M50 26q-5 -9 3 -13', K, 3.5) + blush(20, 54, 4),
+    dot: () => mir(S('M43 24q-4 -11 -11 -9', K, 3.5)) + C(50, 60, 29, '#f03a3a') + S('M50 40v49', K, 3.5) + D(36, 58, 6) + D(64, 58, 6) + D(39, 77, 5) + D(61, 77, 5) + E(50, 35, 19, 13, '#2b2f4a')
+      + D(43, 34, 4.6, '#fff') + D(57, 34, 4.6, '#fff') + D(44, 35, 2.2) + D(58, 35, 2.2) + S('M46 42q4 3 8 0', '#fff', 2),
+    cat: () => mir(P('M24 42L21 13L45 30Z', '#ffb347') + FP('M27 34L26 21L37 30Z', '#ff8fa8')) + C(50, 57, 30, '#ffb347') + S('M50 29v9M43 31v6M57 31v6', '#d9822b', 3.5) + eyes(13, 54)
+      + P('M47 61h6l-3 4z', '#ff6b8a', 2.5) + wmouth(66, 5) + mir(S('M19 60l12 2M20 69l11 -2', K, 2.5)),
+    root: () => mir(E(38, 23, 8.5, 21, '#f4f0ea', -8) + F(38, 25, 4, 14, '#ffb3c4', -8)) + C(50, 61, 26, '#f4f0ea') + eyes(11, 57) + D(50, 65, 3.2, '#ff6b8a') + wmouth(68, 4) + P('M46.5 72h7v6h-7z', '#fff', 2.5)
+      + blush(19, 66, 4.5) + badge('√'),
+    goat: () => mir(P('M36 32q-9 -18 -20 -12q9 3 9 16z', '#e8d9b0') + E(21, 50, 10, 5, '#dcdce6', 22)) + P('M43 80q7 16 14 0z', '#dcdce6') + E(50, 56, 22, 28, '#f0f0f5') + F(50, 71, 12, 9, '#ffd0c2')
+      + D(46, 71, 1.8) + D(54, 71, 1.8) + eyes(11, 50) + S('M44 30q6 6 12 0', '#dcdce6', 3),
+    gus: () => C(20, 72, 11, '#7ad151') + C(36, 77, 11, '#ffc928') + C(52, 74, 11, '#ff6b6b') + C(66, 64, 11, '#4b90f5') + mir(S('M44 24q-3 -9 -9 -8', K, 3)).replace(/<g[^>]*>.*<\/g>/, '')
+      + S('M70 28q-2 -10 -9 -10M80 28q3 -9 9 -8', K, 3) + C(75, 44, 17, '#7ad151') + D(69, 42, 3.6) + D(81, 42, 3.6) + D(70, 41, 1.2, '#fff') + D(82, 41, 1.2, '#fff') + S('M70 50q5 4 10 0', K, 2.8),
+    uni: () => P('M50 4L42 32h16z', '#ffc928') + S('M45 22l8 -4M44 28l11 -5', K, 2.5) + mir(P('M32 36l-4 -14l12 8z', '#fff')) + E(50, 59, 24, 28, '#fff')
+      + P('M27 50q-12 -16 4 -24q12 -6 20 4q-16 2 -16 22z', '#ff7bd5') + FP('M30 44q-4 -10 6 -14q-4 6 -2 14z', '#b56cf0') + F(50, 76, 13, 9, '#ffd6ea') + D(46, 76, 1.8) + D(54, 76, 1.8) + eyes(11, 56) + blush(19, 66, 4),
+    trex: () => P('M28 38l6 -14l7 10l9 -14l9 14l7 -10l6 14z', '#ff8a3c') + E(50, 58, 31, 26, '#3fb57a') + eyes(14, 50) + mir(S('M30 43l10 3', K, 3.5)) + D(45, 60, 1.8) + D(55, 60, 1.8)
+      + P('M30 68q20 12 40 0l-3 6l-4 -5l-4 7l-4 -6l-5 7l-5 -7l-4 6l-4 -7l-4 5z', '#fff', 2.5),
+    dragon: () => mir(P('M34 34l-8 -18l15 10z', '#fff')) + C(50, 57, 29, '#ff5e5e') + FP('M50 28a29 29 0 0 1 0 58z', '#ffc928') + C(50, 57, 29, 'none') + S('M50 28v58', K, 3) + eyes(13, 52)
+      + D(45, 65, 1.9) + D(55, 65, 1.9) + S('M38 72q12 9 24 0', K, 3) + P('M41 74l3 6l3 -5z', '#fff', 2),
+    octo: () => E(26, 72, 7, 15, '#b56cf0', 28) + E(38, 79, 7, 14, '#b56cf0', 10) + E(50, 81, 7, 14, '#b56cf0') + E(62, 79, 7, 14, '#b56cf0', -10) + E(74, 72, 7, 15, '#b56cf0', -28) + C(50, 46, 27, '#b56cf0')
+      + S('M50 24v12M44 30h12', '#fff', 4.5) + eyes(12, 48) + smile(57, 6) + blush(21, 56, 4.5),
+    fox: () => mir(P('M23 44L19 12L45 30Z', '#ff7a2e') + FP('M24 22L21 15L29 19Z', K)) + P('M50 88L20 54Q20 30 50 30Q80 30 80 54Z', '#ff7a2e') + mir(FP('M50 85L24 56q16 2 26 16z', '#fff')) + P('M50 88L20 54Q20 30 50 30Q80 30 80 54Z', 'none')
+      + eyes(13, 53) + C(50, 82, 4.6, K, 0) + S('M50 44a2.5 2.5 0 1 1 2.5 2.500a5 5 0 1 1 -5 -5a7.5 7.5 0 1 1 7.5 7.5', '#ffd9a8', 2.2),
+    sloth: () => C(50, 56, 30, '#b59a7a') + F(50, 59, 23, 21, '#f1e2c6') + mir(F(38, 57, 9, 6, '#7a5f48', -24)) + D(39, 56, 3.4) + D(61, 56, 3.4) + D(40, 55, 1.1, '#fff') + D(62, 55, 1.1, '#fff')
+      + E(50, 63, 4.5, 3.4, '#4a3a2e', 0, 0) + S('M43 69q7 6 14 0', K, 3) + S('M42 27q4 6 8 0q4 6 8 0', K, 3.5) + badge('Σ'),
+    percy: () => mir(E(21, 64, 6, 13, '#2b2f4a', 16)) + C(50, 56, 30, '#2b2f4a') + F(41, 54, 13, 16, '#fff') + F(59, 54, 13, 16, '#fff') + F(50, 68, 18, 14, '#fff') + eyes(10, 52) + P('M44 60h12l-6 8z', '#ffb52e', 3)
+      + blush(19, 64, 4) + badge('%'),
+    giraffe: () => mir(S('M40 30v-15', K, 9) + S('M40 30v-15', '#ffcf5c', 4) + C(40, 13, 5, '#8a5a3c', 3) + E(23, 38, 10, 5, '#ffcf5c', -24)) + E(50, 57, 22, 30, '#ffcf5c') + P('M39 46v-8h5v8zM47.5 46v-14h5v14zM56 46v-10h5v10z', '#c9772e', 2)
+      + F(50, 77, 14, 9.5, '#fff0d0') + D(45, 77, 2) + D(55, 77, 2) + eyes(11, 58),
+    croc: () => mir(C(34, 37, 11, '#4caf50')) + E(50, 60, 31, 24, '#4caf50') + mir(D(34, 37, 4.6) + D(35.5, 35.5, 1.5, '#fff')) + D(45, 56, 2) + D(55, 56, 2)
+      + P('M24 66l6 6l5 -6l5 6l5 -6l5 6l5 -6l5 6l5 -6l5 6l6 -6q-26 14 -52 0z', '#fff', 2.5) + C(82, 20, 11.5, '#fff', 3) + S('M82 14v6l4 3', K, 2.5),
+    roo: () => mir(E(34, 24, 8, 18, '#c98a52', -12) + F(34, 26, 3.5, 11, '#f1d3ae', -12)) + E(50, 59, 22, 27, '#c98a52') + F(50, 73, 13, 11, '#f1d3ae') + E(50, 68, 5.5, 4, K, 0, 0) + smile(74, 5) + eyes(11, 53)
+      + S('M72 86q10 -2 10 -14q0 -8 -8 -8', '#ffc928', 4),
+    badger: () => mir(C(27, 33, 8.5, '#2b2f4a')) + C(50, 57, 30, '#fff') + mir(FP('M38 28q-12 12 -10 36q8 6 15 -1q-3 -18 4 -34z', '#2b2f4a')) + C(50, 57, 30, 'none') + D(37, 54, 3.2, '#fff') + D(63, 54, 3.2, '#fff')
+      + E(50, 72, 6, 4.5, K, 0, 0) + S('M44 79q6 4 12 0', K, 2.8) + badge('−'),
+    panda: () => mir(C(26, 32, 10.5, '#2b2f4a')) + C(50, 57, 30, '#fff') + mir(F(37, 55, 8, 10.5, '#2b2f4a', 20)) + D(38, 54, 3.2, '#fff') + D(62, 54, 3.2, '#fff') + D(38.5, 54.5, 1.4) + D(62.5, 54.5, 1.4)
+      + E(50, 66, 4.5, 3.2, K, 0, 0) + wmouth(70, 4) + S('M50 31v11M44.5 36.500h11', '#e8443c', 4.5) + blush(22, 68, 4),
+    raccoon: () => mir(P('M25 42L22 16L44 30Z', '#8e93a3')) + C(50, 57, 30, '#a9adb8') + FP('M22 52q28 -13 56 0q-3 15 -18 10q-10 -8 -20 0q-15 5 -18 -10z', '#2b2f4a') + C(50, 57, 30, 'none') + D(37, 54, 3.3, '#fff') + D(63, 54, 3.3, '#fff')
+      + F(50, 71, 14, 11, '#fff') + E(50, 66, 5, 3.6, K, 0, 0) + wmouth(71, 4) + S('M50 28v8', '#8e93a3', 4),
+    shark: () => P('M50 8Q86 40 80 78Q50 94 20 78Q14 40 50 8Z', '#6fa8dc') + FP('M24 70q26 14 52 0l3 8q-29 15 -58 0z', '#fff') + P('M50 8Q86 40 80 78Q50 94 20 78Q14 40 50 8Z', 'none') + T(50, 40, 17, 'π', '#fff')
+      + S('M22 40L48 52M78 34L60 50', K, 3) + C(38, 54, 7.5, K, 0) + D(62, 54, 4.4) + D(63.5, 52.4, 1.4, '#fff') + P('M32 68q18 14 36 0l-4 0l-3 5l-4 -5l-4 5l-3 -5l-4 5l-3 -5l-4 5l-3 -5z', '#fff', 2.5),
+    bee: () => mir(E(21, 36, 13, 8.5, '#dff3ff', -32)) + mir(S('M44 30q-3 -12 -10 -12', K, 3)) + C(50, 58, 29, '#ffc928') + S('M23 66q27 9 54 0M29 79q21 8 42 0', K, 7) + C(50, 58, 29, 'none') + eyes(11, 47) + smile(54, 5) + blush(20, 55, 3.8),
+    rhino: () => mir(E(28, 28, 7, 10.5, '#9aa3ad', -20)) + E(50, 57, 26, 30, '#aab3bd') + P('M43 68L50 40L57 68Z', '#f4f0ea') + P('M46 76l4 -9l4 9z', '#f4f0ea', 3) + eyes(15, 50) + D(40, 80, 2.2) + D(60, 80, 2.2) + badge('÷'),
+    angler: () => P('M24 58l-16 -13v26z', '#2aa3a3') + P('M46 37q8 -9 16 -2l-4 6z', '#2aa3a3') + E(52, 60, 30, 23, '#3ac6c6') + S('M60 38q2 -20 20 -16', K, 3) + C(82, 24, 6.5, '#ffe45c', 3) + C(64, 54, 8.5, '#fff', 3) + D(66, 54, 4)
+      + P('M52 70h28l-3 5l-3 -4l-3 5l-3 -5l-3 5l-3 -5l-3 5l-3 -5z', '#fff', 2.5) + S('M34 52q5 8 0 16', '#2aa3a3', 3.5),
+    crab: () => mir(S('M26 58l-8 -12', K, 9) + S('M26 58l-8 -12', '#ff5a45', 4) + C(17, 34, 11.5, '#ff5a45') + FP('M10 30l8 4l-2 -10z', K) + S('M28 80l-10 6M30 72l-12 0', K, 3.5)) + E(50, 64, 30, 21, '#ff5a45')
+      + mir(S('M40 46v-12', K, 3.5) + C(40, 29, 6.5, '#fff', 3) + D(40.5, 29.5, 3)) + S('M40 68q10 8 20 0', K, 3) + blush(20, 68, 4),
+    polly: () => P('M43 30q-3 -18 9 -22q-2 9 7 18z', '#ff5a45') + C(50, 55, 28, '#2fbf5b') + F(50, 58, 19, 17, '#fff') + eyes(12, 49) + P('M41 57q9 -11 18 0q-2 17 -9 20q-7 -3 -9 -20z', '#ffb52e') + S('M44 62q6 4 12 0', K, 2.5)
+      + mir(FP('M24 62q4 10 12 14q-10 0 -13 -6z', '#1d9c46')) + C(50, 55, 28, 'none'),
+    zero: () => C(50, 46, 23, '#ffe45c') + eyes(10, 44) + P('M45.5 50h9l-4.5 6z', '#ff8a3c', 2.5) + blush(17, 51, 4) + S('M50 23q-4 -8 3 -11', K, 3)
+      + P('M20 62l9 7l7 -9l7 9l7 -9l7 9l7 -9l7 9l9 -7q2 30 -30 30q-32 0 -30 -30z', '#fff') + T(50, 88, 15, '0', '#c8cddd'),
+    mouse: () => mir(C(25, 34, 15, '#c9ccd6') + D(25, 34, 8, '#ffb3c4')) + C(50, 59, 26, '#c9ccd6') + eyes(11, 55) + D(50, 66, 3.6, '#ff6b8a') + wmouth(69, 4) + mir(S('M22 62l12 2M23 70l11 -2', K, 2.5)) + P('M47 73h6v5h-6z', '#fff', 2.3),
+    llama: () => mir(E(35, 20, 6, 14, '#f6ead8', -10)) + C(40, 31, 9.5, '#fff7e8') + C(60, 31, 9.5, '#fff7e8') + C(50, 27, 9.5, '#fff7e8') + E(50, 59, 21, 28, '#f6ead8') + F(50, 75, 12, 9, '#e8d2b4') + S('M50 72v5M45 80q5 3 10 0', K, 2.8)
+      + D(50, 71, 2.6) + eyes(11, 54) + S('M70 90v-11M75 90v-11M80 90v-11M85 90v-11M67 88l21 -7', K, 2.8),
+    bear: () => mir(C(26, 31, 10.5, '#a86b3c') + D(26, 31, 4.5, '#e7b98a')) + RR(21, 30, 58, 56, 12, '#a86b3c') + F(50, 70, 15, 11, '#f1d3ae') + E(50, 65, 5.5, 4, K, 0, 0) + wmouth(70, 4.5) + eyes(13, 52) + blush(22, 62, 4),
+    falcon: () => C(50, 57, 28, '#aab4c6') + FP('M22 54a28 28 0 0 1 56 0q-28 -12 -56 0z', '#4a5568') + C(50, 57, 28, 'none') + mir(S('M30 46l14 5', K, 4.5)) + eyes(12, 55, 4) + P('M43 61h14l-7 13z', '#ffc928', 3)
+      + S('M66 22l16 -10M82 12l-8 0M82 12l-2 8', '#fff', 3.5) + mir(FP('M26 68q5 9 13 12q-9 1 -14 -5z', '#8d99ae')),
+    bat: () => mir(P('M30 58Q6 46 6 20q8 9 15 6q2 9 10 10z', '#5b4b8a') + P('M34 38l-2 -18l14 12z', '#6b5ba3')) + C(50, 57, 24, '#6b5ba3') + eyes(10, 53) + S('M40 64q10 8 20 0', K, 3) + P('M43 66l2.5 6l2.5 -5zM52 67l2.5 5l2.5 -6z', '#fff', 2)
+      + blush(17, 61, 3.8),
+    otter: () => mir(C(25, 37, 7.5, '#8a6242')) + E(50, 57, 31, 27, '#9a6e4a') + F(50, 68, 18, 13, '#f1dcc0') + E(50, 61, 6.5, 4.5, K, 0, 0) + wmouth(67, 5) + eyes(15, 50) + mir(S('M19 64l12 1M20 72l11 -3', K, 2.5)) + D(40, 70, 1.3) + D(60, 70, 1.3),
+    eraser: () => `<g transform="rotate(-12 50 54)">${RR(16, 34, 68, 40, 9, '#ff8fb1')}${FP('M16 43a9 9 0 0 1 9 -9h17v40h-17a9 9 0 0 1 -9 -9z', '#5aa0f2')}${RR(16, 34, 68, 40, 9, 'none')}${S('M42 34v40', K, 3.5)}</g>` + mir(S('M33 44l11 5', K, 4)) + eyes(11, 54, 4) + S('M42 66q8 -6 16 0', K, 3.2),
+  };
+  return id => `<svg class="art" viewBox="0 0 100 100" aria-hidden="true">${(A[id] || A.zero)()}</svg>`;
+})();
+if (typeof module !== 'undefined') module.exports = { ART };
+
+/* ===== Digit Derby screen code ===== */
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage can be unavailable */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* same */ } },
+};
+const stk = (C, size) => `<span class="stk" style="--h:${C.hue}${size ? `;--s:${size}px` : ''}">${ART(C.id)}</span>`;
+const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const speed = reduced ? 0.6 : 1;
+const BOT_P = 0.72, MAXR = 8;
+const ALLT = TOPICS.map(t => t[0]);
+const DEF_TOPICS = { 1: ['add', 'sub', 'place', 'alg'], 2: ['add', 'sub', 'mul', 'div', 'place', 'alg'], 3: ALLT, 4: ALLT };
+const TIMERS = [[0, 'No limit'], [30, '30 seconds'], [15, '15 seconds']];
+const LENS = [[30, 'Quick (30 spaces)'], [50, 'Classic (50)'], [70, 'Marathon (70)']];
+const pause = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- sound ---------- */
+let actx = null, soundOn = store.get('dd.sound') !== false;
+function tone(f, d = 0.12, type = 'triangle', when = 0, vol = 0.07) {
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + when;
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.02);
+  } catch (e) { /* no audio, no problem */ }
+}
+const sfx = {
+  good() { tone(660, 0.1); tone(880, 0.2, 'triangle', 0.1); },
+  bad() { tone(196, 0.28, 'sawtooth', 0, 0.04); },
+  hop() { tone(520, 0.04, 'square', 0, 0.025); },
+  dice() { for (let i = 0; i < 6; i++) tone(260 + rnd(320), 0.03, 'square', i * 0.09, 0.025); },
+  pow() { tone(740, 0.08); tone(988, 0.14, 'triangle', 0.07); },
+  back() { tone(330, 0.1); tone(247, 0.16, 'triangle', 0.09); },
+  slam() { tone(90, 0.25, 'sine', 0, 0.22); tone(60, 0.3, 'triangle', 0.02, 0.15); [660, 880, 1175, 1568].forEach((f, i) => tone(f, 0.16, 'triangle', 0.12 + i * 0.07, 0.06)); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.28, 'triangle', i * 0.14)); },
+};
+
+/* ---------- setup state (racers on this device) ---------- */
+function freshSetup() {
+  const ids = shuffle(CHARS.map(c => c.id));
+  return { mode: 'versus', level: 2, topics: DEF_TOPICS[2].slice(), timer: 0, len: 50, eraser: 1, racers: [{ name: '', charId: ids[0], level: 2, bot: false }, { name: '', charId: ids[1], level: 2, bot: false }] };
+}
+function validSetup(s) {
+  try {
+    if (!s || !Array.isArray(s.racers) || s.racers.length > MAXR) return null;
+    const seen = new Set();
+    for (const p of s.racers) { if (!CH[p.charId] || seen.has(p.charId) || !(p.level >= 1 && p.level <= 4)) return null; seen.add(p.charId); p.name = String(p.name || '').slice(0, 14); p.bot = !!p.bot; }
+    s.topics = (s.topics || []).filter(t => GEN[t]); if (!s.topics.length) s.topics = DEF_TOPICS[2].slice();
+    if (!['versus', 'coop'].includes(s.mode)) s.mode = 'versus';
+    if (!(s.level >= 1 && s.level <= 4)) s.level = 2;
+    if (!TIMERS.some(t => t[0] === s.timer)) s.timer = 0;
+    if (!LENS.some(t => t[0] === s.len)) s.len = 50;
+    if (![0, 1, 2].includes(s.eraser)) s.eraser = 1;
+    return s;
+  } catch (e) { return null; }
+}
+let S = validSetup(store.get('dd.setup')) || freshSetup();
+const saveSetup = () => store.set('dd.setup', S);
+const nameOf = i => (S.racers[i].name || '').trim() || `Racer ${i + 1}`;
+
+/* ---------- online play (only when config.js gives a database address) ---------- */
+const CFG = window.DIGIT_DERBY_CONFIG || {};
+const DB = String(CFG.databaseURL || '').trim().replace(/\/+$/, '');
+const ONLINE = /^https?:\/\/.+/.test(DB) && !!window.EventSource && !!window.fetch;
+const setKey = (o, k, v) => { if (v === null || v === undefined) delete o[k]; else o[k] = v; };
+const net = {
+  code: null, role: null, es: null, room: {}, out: [], pumping: false,
+  pid: (() => { let p = store.get('dd.pid'); if (!p) { p = 'p' + Math.random().toString(36).slice(2, 10); store.set('dd.pid', p); } return p; })(),
+  url(code, p) { return `${DB}/rooms/${code}${p ? '/' + p : ''}.json`; },
+  async req(method, p, body, code) {
+    const r = await fetch(this.url(code || this.code, p), { method, body: body === undefined ? undefined : JSON.stringify(body) });
+    if (!r.ok) throw new Error('The game server said no (' + r.status + ').');
+    return r.json();
+  },
+  apply(path, data, merge) {
+    const segs = String(path || '/').split('/').filter(Boolean);
+    if (!segs.length) { if (merge) { for (const k in data) setKey(this.room, k, data[k]); } else this.room = data && typeof data === 'object' ? data : {}; return; }
+    let o = this.room;
+    for (let i = 0; i < segs.length - 1; i++) { if (!o[segs[i]] || typeof o[segs[i]] !== 'object') o[segs[i]] = {}; o = o[segs[i]]; }
+    const last = segs[segs.length - 1];
+    if (merge) { if (!o[last] || typeof o[last] !== 'object') o[last] = {}; for (const k in data) setKey(o[last], k, data[k]); } else setKey(o, last, data);
+  },
+  open(code, role, onChange) {
+    this.close(); this.code = code; this.role = role; this.room = {};
+    const es = this.es = new EventSource(this.url(code, ''));
+    const h = merge => ev => {
+      if (this.es !== es) return;
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (!m) return;
+      this.apply(m.path, m.data, merge); pill();
+      try { onChange(m.path || '/'); } catch (e) { console.error(e); }
+    };
+    es.addEventListener('put', h(false)); es.addEventListener('patch', h(true));
+    es.onopen = () => pill(); es.onerror = () => pill('Reconnecting…');
+    pill();
+  },
+  close() { if (this.es) this.es.close(); this.es = null; this.code = null; this.role = null; this.room = {}; this.out = []; pill(); },
+  queue(method, p, body, ev) { if (!this.code) return; this.out.push({ method, p, body, ev, code: this.code }); this.pump(); },
+  async pump() {
+    if (this.pumping) return; this.pumping = true;
+    while (this.out.length) {
+      const it = this.out[0];
+      if (it.code !== this.code) { this.out.shift(); continue; }
+      try {
+        if (it.ev) {
+          const batch = {}; let n = 0;
+          while (this.out[n] && this.out[n].ev && this.out[n].code === it.code) { batch[this.out[n].p] = this.out[n].body; n++; }
+          await this.req('PATCH', 'ev', batch, it.code); if (this.out[0] === it) this.out.splice(0, n);
+        } else { await this.req(it.method, it.p, it.body, it.code); if (this.out[0] === it) this.out.shift(); }
+        pill();
+      } catch (e) { pill('Reconnecting…'); await pause(1500); }
+    }
+    this.pumping = false;
+  },
+};
+const hosting = () => net.role === 'host', isClient = () => net.role === 'client';
+function pill(msg) {
+  const el = $('#netpill'); if (!el) return;
+  el.hidden = !net.code; el.textContent = msg || (net.code ? 'Room ' + net.code : ''); el.classList.toggle('warn', !!msg);
+}
+const remotes = () => Object.entries(net.room.players || {}).map(([pid, p]) => ({ pid, name: String(p.name || 'Racer').slice(0, 14), charId: p.charId, t: p.t || 0 })).sort((a, b) => a.t - b.t || (a.pid < b.pid ? -1 : 1));
+const H = { levels: {}, metaT: 0 };
+function roster() {
+  const loc = S.racers.map((p, i) => ({ name: nameOf(i), charId: p.charId, level: p.level, bot: p.bot, owner: '' }));
+  if (!hosting()) return loc;
+  return loc.concat(remotes().filter(p => CH[p.charId]).map(p => ({ name: p.name, charId: p.charId, level: H.levels[p.pid] || S.level, bot: false, owner: p.pid })));
+}
+function publishMeta(phase) {
+  if (!hosting()) return;
+  clearTimeout(H.metaT);
+  H.metaT = setTimeout(() => net.queue('PATCH', 'meta', { phase: phase || (cur ? 'race' : 'lobby'), mode: S.mode, locals: JSON.stringify(S.racers.map((p, i) => ({ name: nameOf(i), charId: p.charId }))) }), phase ? 0 : 250);
+}
+function onRoomHost() {
+  const taken = new Set(S.racers.map(p => p.charId)), room = MAXR - S.racers.length;
+  remotes().forEach((p, i) => {
+    if (cur) return;
+    if (i >= room) { net.queue('DELETE', 'players/' + p.pid); return; }
+    if (!CH[p.charId] || taken.has(p.charId)) { const free = CHARS.filter(c => !taken.has(c.id)); p.charId = pick(free).id; net.room.players[p.pid].charId = p.charId; net.queue('PATCH', 'players/' + p.pid, { charId: p.charId }); }
+    taken.add(p.charId);
+  });
+  if (!cur && !$('#home').hidden) renderRacers();
+  if (pending && net.room.in) for (const pid in net.room.in) {
+    let m; try { m = JSON.parse(net.room.in[pid]); } catch (e) { continue; }
+    if (pending && m && m.for === pending.seq && m.k === pending.kind && m.rid === pending.rid && cur && cur.racers[m.rid] && cur.racers[m.rid].owner === pid) { const f = pending.resolve; pending = null; f(m.v); }
+  }
+}
+async function openRoom() {
+  const btn = $('#openroom'); if (btn) btn.disabled = true;
+  try {
+    const old = store.get('dd.host'); if (old && old.code) { try { await net.req('DELETE', '', undefined, old.code); } catch (e) { /* already gone */ } }
+    let code = '';
+    for (let i = 0; i < 6; i++) { code = Array.from({ length: 4 }, () => pick('BCDFGHJKLMNPQRSTVWXZ'.split(''))).join(''); if (!(await net.req('GET', 'meta', undefined, code))) break; }
+    net.open(code, 'host', onRoomHost); store.set('dd.host', { code, t: Date.now() });
+    publishMeta('lobby');
+  } catch (e) { $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. Check the address in config.js and your connection, then reload.</p>`; return; }
+  renderRacers();
+}
+function closeRoom() { if (!hosting()) return; const code = net.code; net.req('DELETE', '', undefined, code).catch(() => {}); net.close(); store.del('dd.host'); renderRacers(); }
+function renderInvite() {
+  const box = $('#invite'); box.hidden = !ONLINE; if (!ONLINE) return;
+  if (!hosting()) { box.innerHTML = `<button class="btn" id="openroom">Let others join from their own devices</button><p class="sub">You’ll get an invite code to share. This device runs the race, so keep it open.</p>`; $('#openroom').onclick = openRoom; return; }
+  const link = location.origin + location.pathname + '?room=' + net.code;
+  box.innerHTML = `<div class="codebox"><span>Invite code</span><b>${net.code}</b></div>
+    <p class="sub">Everyone else opens this same page on their own device, types the code and picks a racer. They’ll appear in the list above.</p>
+    <div class="addrow"><button class="btn ghost sm" id="copylink">Copy the join link</button><button class="btn ghost sm" id="closeroom">Close the room</button></div>`;
+  $('#copylink').onclick = e => { const done = () => { e.target.textContent = 'Link copied'; }; if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => window.prompt('Join link', link)); else window.prompt('Join link', link); };
+  $('#closeroom').onclick = closeRoom;
+}
+
+/* ---------- home screen ---------- */
+function renderRacers() {
+  const rem = hosting() ? remotes() : [];
+  $('#rlist').innerHTML = S.racers.map((p, i) => {
+    const C = CH[p.charId];
+    return `<li class="rrow">
+      <button class="pick" data-pick="${i}" aria-label="Swap racer for player ${i + 1}">${stk(C, 58)}</button>
+      <div class="rmain">
+        <input class="nm" data-nm="${i}" value="${esc(p.name)}" placeholder="Racer ${i + 1}" maxlength="14" aria-label="Name of player ${i + 1}">
+        <button class="chg" data-pick="${i}"><b>${C.name}</b> ${C.power}: ${C.text}</button>
+      </div>
+      <div class="ropts">
+        <select data-lv="${i}" aria-label="Level for player ${i + 1}">${LEVELS.map(l => `<option value="${l.n}"${l.n === p.level ? ' selected' : ''}>${l.name}</option>`).join('')}</select>
+        <label class="chk"><input type="checkbox" data-bot="${i}"${p.bot ? ' checked' : ''}> Computer</label>
+        <button class="x" data-rm="${i}" aria-label="Remove player ${i + 1}"${S.racers.length + rem.length <= 1 ? ' disabled' : ''}>×</button>
+      </div></li>`;
+  }).join('') + rem.map(p => {
+    const C = CH[p.charId] || CHARS[0], lv = H.levels[p.pid] || S.level;
+    return `<li class="rrow remote">
+      <span class="pick">${stk(C, 58)}</span>
+      <div class="rmain"><b class="rname">${esc(p.name)}<span class="tag2">On their own device</span></b><span class="chg"><b>${C.name}</b> ${C.power}: ${C.text}</span></div>
+      <div class="ropts">
+        <select data-rlv="${p.pid}" aria-label="Level for ${esc(p.name)}">${LEVELS.map(l => `<option value="${l.n}"${l.n === lv ? ' selected' : ''}>${l.name}</option>`).join('')}</select>
+        <button class="x" data-kick="${p.pid}" aria-label="Remove ${esc(p.name)}">×</button>
+      </div></li>`;
+  }).join('');
+  const total = S.racers.length + rem.length;
+  $('#addp').disabled = $('#addb').disabled = total >= MAXR;
+  const need = total < 1 || (S.mode === 'versus' && total < 2);
+  $('#start').disabled = need;
+  $('#starthint').textContent = need ? (hosting() ? 'Waiting for racers to join with the code.' : 'Add another racer or a computer racer to race against.') : S.racers.every(p => p.bot) && !rem.length ? 'Every racer is a computer, so this race will play itself.' : 'The starting order is drawn at random.';
+  renderInvite(); saveSetup(); publishMeta();
+}
+function seg(id, name, opts, val) {
+  $(id).innerHTML = opts.map(([v, t]) => `<label><input type="radio" name="${name}" value="${v}"${v === val ? ' checked' : ''}><span>${t}</span></label>`).join('');
+}
+function renderSettings() {
+  $$('input[name=mode]').forEach(r => { r.checked = r.value === S.mode; });
+  $('#glevel').innerHTML = LEVELS.map(l => `<option value="${l.n}"${l.n === S.level ? ' selected' : ''}>${l.name}, ${l.hint}</option>`).join('');
+  $('#topics').innerHTML = TOPICS.map(([k, t]) => `<label><input type="checkbox" value="${k}"${S.topics.includes(k) ? ' checked' : ''}><span>${t}</span></label>`).join('');
+  seg('#timer', 'timer', TIMERS, S.timer); seg('#len', 'len', LENS, S.len);
+  seg('#eraser', 'eraser', ERASER.map((e, i) => [i, e.name]), S.eraser);
+  $('#erfield').hidden = S.mode !== 'coop';
+}
+function renderResume() {
+  const G = store.get('dd.game'), J = ONLINE ? store.get('dd.join') : null, box = $('#resume');
+  let h = '';
+  if (G && Array.isArray(G.racers) && !G.over && G.racers.every(r => CH[r.charId]) && (!G.room || ONLINE))
+    h += `<div class="panel"><p><b>A race is still running.</b> ${esc(G.racers.map(r => r.name).join(', '))} reached round ${G.round}.</p><button class="btn ghost" id="cont">Continue the race</button><button class="btn ghost" id="toss">Throw it away</button></div>`;
+  if (J && J.code && Date.now() - J.t < 6 * 3600e3 && !net.code)
+    h += `<div class="panel"><p><b>You were in room ${esc(J.code)}.</b> Jump back in?</p><button class="btn ghost" id="rejoin">Rejoin</button><button class="btn ghost" id="forget">Forget it</button></div>`;
+  box.innerHTML = h;
+  if ($('#cont')) { $('#cont').onclick = () => launch(G, true); $('#toss').onclick = () => { store.del('dd.game'); publishMeta('lobby'); renderResume(); }; }
+  if ($('#rejoin')) { $('#rejoin').onclick = () => joinRoom(J.code, J.name); $('#forget').onclick = () => { store.del('dd.join'); renderResume(); }; }
+}
+function renderStrip() {
+  const cs = shuffle(CHARS).slice(0, 5), spots = [1, 3, 5, 7, 9];
+  let h = ''; for (let i = 0; i <= 10; i++) h += `<b>${i}</b>`;
+  $('#strip').innerHTML = h + cs.map((C, i) => `<span class="stk" style="--h:${C.hue};--s:64px;left:${(spots[i] + 0.5) / 11 * 100}%;animation-delay:${(4 - i) * 0.12}s">${ART(C.id)}</span>`).join('');
+}
+
+let rosterCb = null;
+function openRoster(o) {
+  rosterCb = o.onPick || null;
+  $('#rtitle').textContent = o.title;
+  $('#surprise').hidden = !rosterCb;
+  $('#rgrid').innerHTML = CHARS.map((C, n) => {
+    const who = rosterCb ? o.takenBy(C.id) : null;
+    const inner = `<span class="cart" style="--h:${C.hue}">${ART(C.id)}</span><span class="cno" aria-hidden="true">${n + 1}</span><span class="cn">${C.name}</span><span class="cp">${C.power}</span><span class="ct">${C.text}</span>${who ? `<span class="tk">Taken by ${esc(who)}</span>` : ''}`;
+    return !rosterCb ? `<div class="cc">${inner}</div>` : `<button class="cc${o.current === C.id ? ' mine' : ''}" data-id="${C.id}"${who ? ' disabled' : ''}>${inner}</button>`;
+  }).join('');
+  $('#roster').showModal(); $('#roster').scrollTop = 0;
+}
+function choose(id) { const cb = rosterCb; $('#roster').close(); if (cb && id) cb(id); }
+function pickLocal(i) {
+  const rem = hosting() ? remotes() : [];
+  openRoster({
+    title: `Choose a racer for ${nameOf(i)}`, current: S.racers[i].charId,
+    takenBy: id => { const j = S.racers.findIndex((p, k) => p.charId === id && k !== i); if (j >= 0) return nameOf(j); const r = rem.find(p => p.charId === id); return r ? r.name : null; },
+    onPick: id => { S.racers[i].charId = id; renderRacers(); },
+  });
+}
+const usedChars = () => new Set(S.racers.map(p => p.charId).concat(hosting() ? remotes().map(p => p.charId) : []));
+
+function wireHome() {
+  $('#rlist').addEventListener('click', e => {
+    const p = e.target.closest('button[data-pick]'), x = e.target.closest('[data-rm]'), k = e.target.closest('[data-kick]');
+    if (p) pickLocal(+p.dataset.pick);
+    else if (x) { S.racers.splice(+x.dataset.rm, 1); renderRacers(); }
+    else if (k) { delete (net.room.players || {})[k.dataset.kick]; net.queue('DELETE', 'players/' + k.dataset.kick); renderRacers(); }
+  });
+  $('#rlist').addEventListener('input', e => { if (e.target.dataset.nm != null) { S.racers[+e.target.dataset.nm].name = e.target.value; saveSetup(); publishMeta(); } });
+  $('#rlist').addEventListener('change', e => {
+    const d = e.target.dataset;
+    if (d.lv != null) { S.racers[+d.lv].level = +e.target.value; saveSetup(); }
+    if (d.rlv != null) H.levels[d.rlv] = +e.target.value;
+    if (d.bot != null) { S.racers[+d.bot].bot = e.target.checked; renderRacers(); }
+  });
+  const add = bot => { const used = usedChars(); if (used.size < MAXR) { S.racers.push({ name: '', charId: pick(CHARS.filter(c => !used.has(c.id))).id, level: S.level, bot }); renderRacers(); } };
+  $('#addp').onclick = () => add(false); $('#addb').onclick = () => add(true);
+  $$('input[name=mode]').forEach(r => r.addEventListener('change', () => { S.mode = r.value; $('#erfield').hidden = S.mode !== 'coop'; renderRacers(); }));
+  $('#glevel').onchange = e => { S.level = +e.target.value; S.racers.forEach(p => { p.level = S.level; }); H.levels = {}; S.topics = DEF_TOPICS[S.level].slice(); renderSettings(); renderRacers(); };
+  $('#topics').addEventListener('change', () => {
+    const on = $$('#topics input:checked').map(i => i.value);
+    if (!on.length) { renderSettings(); return; }
+    S.topics = on; saveSetup();
+  });
+  [['#timer', 'timer'], ['#len', 'len'], ['#eraser', 'eraser']].forEach(([id, k]) => $(id).addEventListener('change', e => { S[k] = +e.target.value; saveSetup(); }));
+  $('#start').onclick = () => { store.del('dd.game'); launch(newGame(Object.assign({}, S, { racers: roster() }))); };
+  $('#rgrid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b && !b.disabled) choose(b.dataset.id); });
+  $('#surprise').onclick = () => { const free = $$('#rgrid button[data-id]:not([disabled])'); if (free.length) choose(pick(free).dataset.id); };
+  $('#meet').onclick = () => openRoster({ title: 'Meet the racers' });
+  $('#how').onclick = () => $('#howto').showModal();
+  $$('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); }));
+  const snd = $('#snd'), paint = () => { snd.textContent = soundOn ? 'Sound on' : 'Sound off'; snd.setAttribute('aria-pressed', soundOn); };
+  snd.onclick = () => { soundOn = !soundOn; store.set('dd.sound', soundOn); paint(); if (soundOn) sfx.pow(); }; paint();
+  let armed = 0;
+  $('#leave').onclick = e => {
+    if (Date.now() - armed < 3000) { armed = 0; if (isClient()) leaveRoom(); else { if (hosting()) store.del('dd.game'); goHome(); } return; }
+    armed = Date.now(); e.target.textContent = 'Tap again to leave';
+    setTimeout(() => { $('#leave').textContent = isClient() ? 'Leave room' : 'Leave race'; }, 3000);
+  };
+  $('#brand').onclick = () => { if (!cur && !isClient()) goHome(); };
+  $('#turncard').addEventListener('click', e => {
+    if (e.target.closest('[data-take]')) { takeOver(); return; }
+    const b = e.target.closest('[data-act]'); if (!b || b.disabled || !cue) return;
+    if (b.dataset.act === 'ans') act('ans', { choice: +b.dataset.v, ms: performance.now() - cue.t0 }); else act(b.dataset.act, 1);
+  });
+  document.addEventListener('keydown', e => { const n = +e.key; if (cue && cue.kind === 'ans' && n >= 1 && n <= 4 && !e.ctrlKey && !e.metaKey && !e.altKey && !/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) act('ans', { choice: n - 1, ms: performance.now() - cue.t0 }); });
+  $('#joinbox').hidden = !ONLINE;
+  if (ONLINE) {
+    const q = new URLSearchParams(location.search).get('room'); if (q) $('#jcode').value = q.toUpperCase().slice(0, 4);
+    $('#jname').value = store.get('dd.name') || '';
+    $('#jgo').onclick = () => joinRoom($('#jcode').value, $('#jname').value);
+    [$('#jcode'), $('#jname')].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') $('#jgo').click(); }));
+  }
+}
+function show(id) {
+  ['home', 'lobby', 'race', 'finish'].forEach(s => { $('#' + s).hidden = s !== id; });
+  $('#leave').hidden = !(id === 'race' || (isClient() && id !== 'home'));
+  $('#leave').textContent = isClient() ? 'Leave room' : 'Leave race';
+  $('#moment').hidden = true;
+  window.scrollTo(0, 0);
+}
+function goHome() {
+  cur = null; cue = null; pending = null;
+  renderSettings(); renderRacers(); renderResume(); renderStrip(); show('home');
+  if (hosting()) { publishMeta('lobby'); net.queue('PATCH', '', { snap: null, ev: null }); }
+}
+
+/* ---------- joining someone else's room ---------- */
+const CL = { gid: null, last: 0, q: {}, busy: false, gen: 0, screen: '' };
+function jerr(t) { $('#jerr').textContent = t || ''; }
+async function joinRoom(code, name) {
+  code = String(code || '').toUpperCase().replace(/[^A-Z]/g, ''); name = String(name || '').trim().slice(0, 14);
+  if (code.length !== 4) return jerr('Type the 4-letter invite code.');
+  if (!name) return jerr('Type your name so the others know who you are.');
+  jerr(''); $('#jgo').disabled = true;
+  try {
+    const room = await net.req('GET', '', undefined, code);
+    if (!room || !room.meta) { jerr('No room has that code. Check it with the person who set up the race.'); return; }
+    const players = room.players || {}, mine = players[net.pid];
+    let locals = []; try { locals = JSON.parse(room.meta.locals || '[]'); } catch (e) { /* ignore */ }
+    if (!mine && room.meta.phase !== 'lobby') { jerr('That race has already started. You can join the next one.'); return; }
+    if (!mine && locals.length + Object.keys(players).length >= MAXR) { jerr('That room is full.'); return; }
+    const taken = new Set(locals.map(l => l.charId).concat(Object.values(players).map(p => p.charId)));
+    if (mine) await net.req('PATCH', 'players/' + net.pid, { name }, code);
+    else await net.req('PUT', 'players/' + net.pid, { name, charId: pick(CHARS.filter(c => !taken.has(c.id))).id, t: Date.now() }, code);
+    store.set('dd.name', name); store.set('dd.join', { code, name, t: Date.now() });
+    cur = null; CL.gid = null; CL.last = 0; CL.q = {}; CL.gen++; CL.screen = '';
+    net.open(code, 'client', onRoomClient);
+  } catch (e) { jerr('Couldn’t reach the game server. Check your connection and try again.'); }
+  finally { $('#jgo').disabled = false; }
+}
+function leaveRoom(msg) {
+  if (isClient()) net.req('DELETE', 'players/' + net.pid).catch(() => {});
+  net.close(); store.del('dd.join'); CL.gen++; goHome(); jerr(msg || '');
+}
+function onRoomClient(path) {
+  const room = net.room;
+  if (!room.meta) return leaveRoom('The host closed that room.');
+  if (!room.players || !room.players[net.pid]) return leaveRoom('You’re no longer in that room.');
+  if (room.meta.phase !== 'race' || !room.snap) {
+    if (CL.screen !== 'lobby') { CL.screen = 'lobby'; cur = null; CL.gid = null; CL.q = {}; CL.gen++; show('lobby'); }
+    return renderLobby();
+  }
+  const sn = room.snap;
+  if (sn.gid !== CL.gid || ((path === '/' || CL.screen !== 'race') && sn.seq > CL.last)) {
+    let G; try { G = JSON.parse(sn.g); } catch (e) { return; }
+    CL.gid = sn.gid; CL.last = sn.seq; CL.q = {}; CL.gen++; CL.screen = 'race'; mount(G);
+  }
+  for (const k in room.ev || {}) { let e; try { e = JSON.parse(room.ev[k]); } catch (x) { continue; } if (e && e.s > CL.last && !CL.q[e.s]) CL.q[e.s] = e; }
+  drain();
+}
+async function drain() {
+  if (CL.busy) return; CL.busy = true;
+  const gen = CL.gen;
+  try { while (CL.q[CL.last + 1] && gen === CL.gen && cur) { const e = CL.q[CL.last + 1]; delete CL.q[CL.last + 1]; CL.last = e.s; if (V[e.t]) await V[e.t](cur, e); } }
+  catch (err) { if (!(err instanceof Abort)) console.error(err); }
+  CL.busy = false;
+  if (gen !== CL.gen) drain();
+}
+function renderLobby() {
+  const room = net.room, me = room.players[net.pid], C = CH[me.charId] || CHARS[0];
+  let locals = []; try { locals = JSON.parse(room.meta.locals || '[]'); } catch (e) { /* ignore */ }
+  const others = remotes(), all = locals.map(l => ({ name: l.name, charId: l.charId })).concat(others);
+  $('#lobby').innerHTML = `<div class="hero"><h1>Room ${esc(net.code)}</h1><p class="lede onfield">You’re in, ${esc(me.name)}. Pick your racer, then wait for the host to start the race.</p></div>
+    <div class="setup"><div class="panel lobme"><h2>Your racer</h2>
+      <div class="mine" style="--h:${C.hue}"><span class="cart">${ART(C.id)}</span><div><h3>${C.name}</h3><span class="cp">${C.power}</span><p>${C.text}</p></div></div>
+      <button class="btn" id="lpick">Choose a different racer</button></div>
+    <div class="panel"><h2>${room.meta.mode === 'coop' ? 'Your team' : 'On the start line'}</h2><ul class="who-list">${all.map(p => `<li>${stk(CH[p.charId] || CHARS[0], 46)}<b>${esc(p.name)}</b></li>`).join('')}</ul></div></div>`;
+  $('#lpick').onclick = () => openRoster({
+    title: 'Choose your racer', current: me.charId,
+    takenBy: id => { const l = locals.find(x => x.charId === id); if (l) return l.name; const o = others.find(x => x.charId === id && x.pid !== net.pid); return o ? o.name : null; },
+    onPick: id => { net.room.players[net.pid].charId = id; renderLobby(); net.req('PATCH', 'players/' + net.pid, { charId: id }).catch(() => {}); },
+  });
+}
+
+/* ---------- race screen: drawing ---------- */
+class Abort extends Error {}
+let cur = null, curR = null, view = {}, viewEr = 0, path = [], cols = 12, rows = 1, cue = null, pending = null, tookOver = null, qTimer = 0;
+const guard = G => { if (G !== cur) throw new Abort(); };
+const sleep = (G, ms) => new Promise((res, rej) => setTimeout(() => (G === cur ? res() : rej(new Abort())), ms * speed));
+const narrow = () => window.innerWidth < 900;
+const canAct = r => !r.bot && (isClient() ? r.owner === net.pid : !r.owner || tookOver === r.id);
+function focusOn(sel) { if (narrow()) { const e = $(sel); if (e) e.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' }); } }
+function tick(text, tone) {
+  const ol = $('#ticker'), li = document.createElement('li');
+  li.textContent = text; if (tone) li.className = tone; ol.appendChild(li);
+  while (ol.children.length > 5) ol.firstChild.remove();
+}
+function colsFor() { return ($('#board').parentElement.clientWidth || 800) < 620 ? 8 : 12; }
+function buildBoard(G) {
+  const b = $('#board'); cols = colsFor(); path = [];
+  const sg = cols + 1;
+  for (let i = 0; i <= G.len; i++) { const s = Math.floor(i / sg), k = i % sg, ltr = s % 2 === 0; path.push(k < cols ? { c: ltr ? k : cols - 1 - k, r: s * 2 } : { c: ltr ? cols - 1 : 0, r: s * 2 + 1 }); }
+  rows = Math.max(...path.map(p => p.r)) + 1;
+  b.style.aspectRatio = `${cols} / ${rows}`;
+  const sym = { boost: '+2', slip: '−2', quiz: '?' };
+  const box = (c, r) => `left:${c / cols * 100}%;top:${r / rows * 100}%;width:${100 / cols}%;height:${100 / rows}%`;
+  const used = new Set(path.map(p => p.c + ',' + p.r)), GL = ['+', '÷', '×', 'π', '=', '%', '√', '−', '<', '>'];
+  let h = '';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (!used.has(c + ',' + r) && (c * 7 + r * 13) % 3 === 0) h += `<span class="glyph" style="${box(c, r)};transform:rotate(${(c * 37 + r * 17) % 40 - 20}deg)">${GL[(c * 5 + r * 3) % GL.length]}</span>`;
+  h += '<div class="trk">' + path.map((p, i) => {
+    const k = i === 0 ? 'start' : i === G.len ? 'end' : G.tiles[i] || '';
+    const inner = i === 0 ? 'Go' : i === G.len ? '' : k ? `<small>${i}</small><b>${sym[k]}</b>` : i;
+    const s = Math.floor(i / sg), q = i % sg, ltr = s % 2 === 0;
+    let cn = '';
+    if (q === cols - 1 && i < G.len) cn += ltr ? ' c-tr' : ' c-tl';
+    if (q === 0 && s > 0) cn += ltr ? ' c-bl' : ' c-br';
+    if (i === 0) cn += ' c-tl c-bl';
+    if (i === G.len) cn += q === cols ? ' c-bl c-br' : q === 0 && s > 0 ? '' : ltr ? ' c-tr c-br' : ' c-tl c-bl';
+    return `<div class="tile${k ? ' t-' + k : ''}${i % 2 ? ' alt' : ''}${cn}" data-t="${i}" style="${box(p.c, p.r)}"><div class="ti">${inner}</div></div>`;
+  }).join('') + '</div>';
+  if (G.mode === 'coop') h += `<div class="tok er" id="tok-er" title="The Eraser"><span class="tb">${ART('eraser')}</span></div>`;
+  h += G.racers.map(r => `<div class="tok" id="tok-${r.id}" style="--h:${CH[r.charId].hue}" title="${esc(r.name)}"><span class="tb">${ART(r.charId)}</span></div>`).join('');
+  b.innerHTML = h;
+  place();
+}
+function place() {
+  const G = cur; if (!G) return;
+  const b = $('#board'), ts = b.clientWidth / cols; b.style.setProperty('--ts', ts + 'px');
+  const groups = {};
+  G.racers.forEach(r => { const p = view[r.id]; (groups[p] = groups[p] || []).push(r); });
+  if (G.mode === 'coop') (groups[viewEr] = groups[viewEr] || []).push({ id: 'er' });
+  Object.keys(groups).forEach(p => {
+    const g = groups[p], n = g.length, pt = path[p]; if (!pt) return;
+    g.forEach((r, i) => {
+      const t = $('#tok-' + r.id); if (!t) return;
+      const a = i / n * Math.PI * 2 - Math.PI / 2, rad = n > 1 ? ts * (n > 4 ? 0.29 : 0.21) : 0;
+      t.style.left = (pt.c + 0.5) / cols * 100 + '%'; t.style.top = (pt.r + 0.5) / rows * 100 + '%';
+      t.style.setProperty('--ox', Math.cos(a) * rad + 'px'); t.style.setProperty('--oy', Math.sin(a) * rad + 'px');
+      t.style.setProperty('--sc', n > 4 ? 0.55 : n > 2 ? 0.68 : n > 1 ? 0.82 : 1);
+      if (r.id !== 'er') t.classList.toggle('done', !!r.finished);
+    });
+  });
+  if (G.mode === 'coop') $$('#board .tile').forEach(t => t.classList.toggle('wiped', +t.dataset.t > 0 && +t.dataset.t <= viewEr));
+}
+function drawStandings(G) {
+  const rs = G.racers.slice().sort((a, b) => (view[b.id] - view[a.id]) || G.order.indexOf(a.id) - G.order.indexOf(b.id));
+  $('#standings').innerHTML = rs.map((r, i) => {
+    const C = CH[r.charId];
+    return `<li class="${r === curR ? 'cur' : ''}"><span class="pl">${i + 1}</span>${stk(C, 40)}<span class="sn"><b>${esc(r.name)}</b><span class="bar"><i style="--h:${C.hue};width:${Math.min(100, view[r.id] / G.len * 100)}%"></i></span></span><span class="sp">${r.finished ? 'Finished' : view[r.id] ? 'Space ' + view[r.id] : 'Start'}<small>${r.correct} of ${r.asked} right</small></span></li>`;
+  }).join('');
+  let s = `<span class="rd">Round ${G.round}</span><span>${G.mode === 'coop' ? 'Team up' : 'First to space ' + G.len + ' wins'}</span>`;
+  if (G.mode === 'coop') {
+    const max = 3 + Math.max(0, Math.floor((G.racers.length - 2) / 3));
+    s += `<span class="chalk" aria-label="${G.chalk} sticks of chalk left">Chalk ${Array.from({ length: max }, (_, i) => `<i class="${i < G.chalk ? '' : 'gone'}"></i>`).join('')}</span><span>${viewEr > 0 ? 'Eraser at space ' + viewEr : 'Eraser asleep'}</span>`;
+  }
+  $('#status').innerHTML = s;
+}
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+const face = v => v >= 1 && v <= 6 ? PIPS[v].map(p => `<i style="grid-area:${Math.floor(p / 3) + 1}/${p % 3 + 1}"></i>`).join('') : `<b>${v || '?'}</b>`;
+const stats = G => ({ round: G.round, chalk: G.chalk, er: G.eraser, fo: G.finishOrder, res: G.result, rs: G.racers.map(r => [r.pos, r.correct, r.asked, r.finished ? 1 : 0]) });
+function applyStats(G, st) {
+  if (!st || !isClient()) return;
+  G.round = st.round; G.chalk = st.chalk; G.eraser = st.er; G.finishOrder = st.fo || []; G.result = st.res || null;
+  (st.rs || []).forEach((a, i) => { const r = G.racers[i]; if (r) { r.pos = a[0]; r.correct = a[1]; r.asked = a[2]; r.finished = !!a[3]; view[r.id] = r.pos; } });
+  viewEr = G.eraser; place();
+}
+function actArea(r, label, kind) {
+  if (r.bot) return '<p class="think">The computer is thinking…</p>';
+  const mine = canAct(r);
+  return `<button class="btn big" data-act="${kind}"${mine ? '' : ' hidden'}>${label}</button>` + (mine ? '' : `<p class="think" data-wait>Waiting for ${esc(r.name)}…</p>`);
+}
+const takeBtn = r => !isClient() && r.owner && !r.bot && !canAct(r) ? `<button class="btn ghost sm take" data-take>Play this turn for ${esc(r.name)}</button>` : '';
+function takeOver() {
+  if (!cue || !cur) return; tookOver = cue.rid; cue.t0 = performance.now();
+  const c = $('#turncard');
+  c.querySelectorAll('[data-act]').forEach(b => { b.hidden = false; b.disabled = false; });
+  c.querySelectorAll('[data-wait],[data-take]').forEach(b => b.remove());
+}
+function act(kind, v) {
+  const p = cue; if (!p || p.kind !== kind || !cur) return;
+  const r = cur.racers[p.rid]; if (!r || !canAct(r)) return;
+  cue = null; clearTimeout(qTimer);
+  const c = $('#turncard');
+  if (kind === 'ans') c.querySelectorAll('[data-act]').forEach(b => { b.disabled = true; if (+b.dataset.v === v.choice) b.classList.add('picked'); }); else c.querySelectorAll('[data-act]').forEach(b => { b.hidden = true; });
+  if (isClient()) net.req('PUT', 'in/' + net.pid, JSON.stringify({ for: p.seq, k: kind, rid: p.rid, v })).catch(() => { cue = p; c.querySelectorAll('[data-act]').forEach(b => { b.hidden = false; b.disabled = false; }); });
+  else if (pending && pending.kind === kind && pending.rid === p.rid) { const f = pending.resolve; pending = null; f(v); }
+}
+async function moment(G, r, title, sub) {
+  const C = CH[r.charId], m = $('#moment');
+  m.className = 'moment';
+  m.innerHTML = `<div class="mcard" style="--h:${C.hue}"><div class="mtop"><i class="mrays"></i>${ART(C.id)}</div><p class="mwho">${esc(r.name)}’s ${C.name}</p><h2>${esc(title)}</h2>${sub ? `<p class="msub">${esc(sub)}</p>` : ''}</div>`;
+  m.hidden = false; sfx.slam();
+  const slab = $('.slab'); if (slab && !reduced) { slab.classList.remove('shake'); void slab.offsetWidth; slab.classList.add('shake'); }
+  try { await sleep(G, 1300); m.classList.add('out'); await sleep(G, 200); } finally { m.hidden = true; }
+}
+
+/* V draws one event. The host and every joined device run the same drawing code. */
+const V = {
+  async turn(G, e) {
+    guard(G); applyStats(G, e.st);
+    const r = G.racers[e.rid], C = CH[r.charId]; curR = r; if (!e.depth) tookOver = null;
+    drawStandings(G);
+    $$('.tok').forEach(t => t.classList.remove('active'));
+    const t = $('#tok-' + r.id); if (t) t.classList.add('active');
+    cue = { seq: e.s, rid: r.id, kind: 'go', t0: performance.now() };
+    const you = isClient() && r.owner === net.pid;
+    $('#turncard').innerHTML = `<div class="who" style="--h:${C.hue}">${stk(C, 78)}<div><h2>${you ? 'Your turn' : esc(r.name) + (e.depth ? ' goes again' : '’s turn')}</h2><p>${you ? esc(r.name) + ', ' : ''}${C.name}</p></div></div>
+      <div class="tcbody">${e.helper ? `<div class="pwt">${esc(r.name)} has finished the race. This roll goes to the teammate at the back.</div>` : `<div class="pwt"><span class="ptag">Power</span><strong>${C.power}</strong>${C.text}</div>`}
+      <div class="act">${actArea(r, 'Show my question', 'go')}</div>${takeBtn(r)}</div>`;
+    if (canAct(r)) { focusOn('#turncard'); const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
+  },
+  async ask(G, e) {
+    guard(G);
+    const r = G.racers[e.rid], C = CH[r.charId], card = $('#turncard'), q = e.q, plain = q.html.replace(/<[^>]+>/g, ''), mine = canAct(r);
+    const tag = e.quiz ? 'Pop quiz' : e.harder ? 'Harder question' : '';
+    card.innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b>${tag ? `<span class="tag">${tag}</span>` : ''}</div></div>
+      <div class="tcbody"><div class="qbox">${e.timer ? `<div class="timer"><i style="animation-duration:${e.timer}s"></i></div>` : ''}<div class="q${plain.length > 16 ? ' long' : ''}">${q.html}</div></div>
+      <div class="ans">${q.choices.map((ch, i) => `<button data-act="ans" data-v="${i}"${mine ? '' : ' disabled'}><kbd>${i + 1}</kbd>${ch}</button>`).join('')}</div>
+      <p class="fb" id="fb" aria-live="polite">${mine || r.bot ? '' : `<span class="think" data-wait>${esc(r.name)} is answering…</span>`}</p>${takeBtn(r)}</div>`;
+    cue = { seq: e.s, rid: r.id, kind: 'ans', t0: performance.now() };
+    clearTimeout(qTimer);
+    if (mine) { focusOn('#turncard'); if (e.timer) qTimer = setTimeout(() => act('ans', { choice: -1, ms: e.timer * 1000 }), e.timer * 1000); }
+  },
+  async reveal(G, e) {
+    guard(G); cue = null; clearTimeout(qTimer);
+    const card = $('#turncard'), box = card.querySelector('.ans');
+    if (box) box.classList.add('shown');
+    card.querySelectorAll('[data-act="ans"]').forEach((b, i) => { b.disabled = true; if (i === e.correct) b.classList.add('right'); else if (i === e.choice) b.classList.add('wrong'); });
+    card.querySelectorAll('[data-take]').forEach(b => b.remove());
+    const tm = card.querySelector('.timer i'); if (tm) tm.style.animationPlayState = 'paused';
+    const fb = $('#fb'); if (fb) { fb.className = 'fb ' + (e.ok ? 'good' : 'bad'); fb.textContent = e.ok ? (e.quiz ? 'Right. That’s 3 more spaces.' : 'Right. Bonus die unlocked.') : (e.choice < 0 ? 'Out of time.' : 'Not this time.') + (e.quiz ? '' : ' Main die only.'); }
+    if (e.ok) sfx.good(); else sfx.bad();
+    await sleep(G, e.ok ? 950 : 1900);
+  },
+  async dice(G, e) {
+    guard(G);
+    const r = G.racers[e.rid], C = CH[r.charId], names = { main: 'Main die', bonus: 'Bonus die', power: 'Power die' };
+    $('#turncard').innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b></div></div>
+      <div class="tcbody"><p class="fb ${e.correct ? 'good' : 'bad'}">${e.correct ? 'Right answer' : `Missed. The answer was <span class="ansv">${e.answer || ''}</span>`}</p>
+      <div class="tray">${e.dice.map((d, i) => `<div class="dwrap"><div class="die ${d.kind}" id="die${i}">${face(0)}</div><small>${names[d.kind]}${d.sides !== 6 ? ` (${d.sides} sides)` : ''}</small><em id="dn${i}"></em></div>`).join('')}</div>
+      <ul class="mods" id="mods"></ul><p class="total" id="total" hidden></p>
+      <div class="act" id="ract">${r.bot ? '' : actArea(r, 'Roll the dice', 'roll')}</div>${takeBtn(r)}</div>`;
+    cue = { seq: e.s, rid: r.id, kind: 'roll', t0: performance.now() };
+    if (canAct(r)) { const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
+  },
+  async rolled(G, e) {
+    guard(G); cue = null;
+    const r = G.racers[e.rid], ra = $('#ract'); if (ra) ra.hidden = true;
+    $$('#turncard [data-take]').forEach(b => b.remove());
+    const die = i => $('#die' + i) || document.createElement('div'), note = i => $('#dn' + i) || document.createElement('em');
+    sfx.dice();
+    e.dice.forEach((d, i) => die(i).classList.add('rolling'));
+    for (let k = 0; k < 9; k++) { e.dice.forEach((d, i) => { die(i).innerHTML = face(R(1, d.sides)); }); await sleep(G, 75); }
+    e.dice.forEach((d, i) => { const el = die(i); el.classList.remove('rolling'); el.innerHTML = face(d.orig); });
+    if (e.dice.some(d => d.note)) {
+      await sleep(G, 600);
+      e.dice.forEach((d, i) => { if (d.note) { const el = die(i); el.innerHTML = face(d.v); el.classList.add('chg'); note(i).textContent = d.note; } });
+      sfx.pow();
+    }
+    await sleep(G, 400);
+    const big = e.mods.reduce((s, m) => s + m.n, 0);
+    if (big >= 3) await moment(G, r, e.mods[0].t.replace(/\s*\(.*\)$/, ''), `${big} more spaces`);
+    const ml = $('#mods'); if (ml) ml.innerHTML = e.mods.map(m => `<li><span>${esc(m.t)}</span><b>${m.n > 0 ? '+' : '−'}${Math.abs(m.n)}</b></li>`).join('');
+    if (e.mods.length && big < 3) sfx.pow();
+    const t = $('#total'); if (t) { t.hidden = false; t.innerHTML = `Move <span class="burst"><b>${e.move}</b></span>`; }
+    tick(`${r.name} rolls ${e.dice.map(d => d.v).join(' + ')}${e.mods.length ? ', ' + e.mods.map(m => m.t).join(' and ') + ' kicks in,' : ''} and moves ${e.move}.`);
+    await sleep(G, 850 + 300 * e.mods.length);
+  },
+  async move(G, e) {
+    guard(G);
+    const r = G.racers[e.rid], t = $('#tok-' + r.id); focusOn('#board');
+    if (isClient()) { r.pos = e.to; if (e.to >= G.len) r.finished = true; }
+    if (e.kind === 'dice') {
+      const per = e.to - e.from > 9 ? 80 : 120;
+      if (t) t.classList.add('run');
+      for (let p = e.from + 1; p <= e.to; p++) { view[r.id] = p; place(); sfx.hop(); await sleep(G, per); }
+      if (t) t.classList.remove('run');
+    } else {
+      const d = e.to - e.from;
+      tick(`${r.name} ${d > 0 ? 'jumps ahead' : 'slides back'} ${Math.abs(d)} (${e.why}).`, d > 0 ? 'good' : 'bad');
+      if (d > 0) sfx.pow(); else sfx.back();
+      if (t) t.classList.add('slide'); view[r.id] = e.to; place(); await sleep(G, 700); if (t) t.classList.remove('slide');
+    }
+    drawStandings(G);
+  },
+  async power(G, e) {
+    guard(G);
+    const r = G.racers[e.rid], t = $('#tok-' + r.id); if (t) { t.classList.remove('zap'); void t.offsetWidth; t.classList.add('zap'); }
+    tick(`${r.name}’s ${CH[r.charId].name} uses ${e.name}.`, 'pow');
+    await moment(G, r, e.name);
+  },
+  async say(G, e) { guard(G); tick(e.text, e.tone); await sleep(G, 550); },
+  async eraser(G, e) {
+    guard(G); tick(e.text, e.to > e.from ? 'bad' : 'good');
+    if (isClient()) { G.eraser = e.to; G.chalk = e.chalk; }
+    if (e.to > e.from) sfx.back(); else sfx.pow();
+    const t = $('#tok-er'); if (t) t.classList.add('slide');
+    viewEr = e.to; place(); drawStandings(G); await sleep(G, 950);
+    if (t) t.classList.remove('slide');
+  },
+  async end(G, e) { guard(G); applyStats(G, e.st); if (isClient()) { G.over = true; } drawStandings(G); await sleep(G, 900); showFinish(G); },
+};
+
+/* ui is what the rules engine talks to. It runs on the device that owns the race: it draws, broadcasts, and waits for taps. */
+function emit(G, e) { if (hosting() && G.room === net.code) { e.s = ++G.seq; net.queue('PATCH', 'e' + e.s, JSON.stringify(e), true); } return e; }
+function pushSnap(G) { if (hosting() && G.room === net.code) net.queue('PATCH', '', { snap: { seq: G.seq, gid: G.gid, g: JSON.stringify(G) }, ev: null }); }
+const waitFor = (G, r, kind, e) => new Promise(res => { pending = { seq: e.s, rid: r.id, kind, resolve: v => { if (G === cur) res(v); } }; });
+let lastAnswer = '';
+const ui = {
+  save(G) { if (G !== cur) return; store.set('dd.game', G); pushSnap(G); },
+  async turn(G, r, c) {
+    const e = emit(G, { t: 'turn', rid: r.id, depth: c.depth, helper: c.helper, st: stats(G) });
+    await V.turn(G, e);
+    if (r.bot) await sleep(G, 800); else await waitFor(G, r, 'go', e);
+  },
+  async ask(G, r, q, meta) {
+    const e = emit(G, { t: 'ask', rid: r.id, q: { html: q.html, choices: q.choices }, quiz: !!meta.quiz, harder: !!meta.harder, timer: G.timer > 0 && !r.bot ? G.timer : 0 });
+    await V.ask(G, e);
+    let a;
+    if (r.bot) { await sleep(G, 1000 + rnd(700)); a = { choice: Math.random() < BOT_P ? q.correct : pick([0, 1, 2, 3].filter(i => i !== q.correct)), ms: 2500 + rnd(6000) }; }
+    else a = await waitFor(G, r, 'ans', e);
+    guard(G);
+    const choice = a && Number.isInteger(a.choice) ? a.choice : -1, ok = choice === q.correct;
+    lastAnswer = q.answer;
+    await V.reveal(G, emit(G, { t: 'reveal', rid: r.id, choice, correct: q.correct, ok, quiz: !!meta.quiz }));
+    return { correct: ok, ms: a && a.ms > 0 ? a.ms : 99999 };
+  },
+  async roll(G, r, c) {
+    const e = emit(G, { t: 'dice', rid: r.id, correct: c.correct, answer: lastAnswer, dice: c.dice.map(d => ({ kind: d.kind, sides: d.sides })) });
+    await V.dice(G, e);
+    if (r.bot) await sleep(G, 450); else await waitFor(G, r, 'roll', e);
+    guard(G);
+    await V.rolled(G, emit(G, { t: 'rolled', rid: r.id, dice: c.dice, mods: c.mods, move: c.move }));
+  },
+  move(G, r, from, to, kind, why) { return V.move(G, emit(G, { t: 'move', rid: r.id, from, to, kind, why })); },
+  power(G, r, name) { return V.power(G, emit(G, { t: 'power', rid: r.id, name })); },
+  say(G, text, tone) { return V.say(G, emit(G, { t: 'say', text, tone })); },
+  eraser(G, from, to, text) { return V.eraser(G, emit(G, { t: 'eraser', from, to, text, chalk: G.chalk })); },
+  async end(G) { store.del('dd.game'); await V.end(G, emit(G, { t: 'end', st: stats(G) })); },
+};
+
+function mount(G) {
+  cur = G; curR = null; view = {}; cue = null; pending = null; tookOver = null; clearTimeout(qTimer);
+  G.racers.forEach(r => { view[r.id] = r.pos; }); viewEr = G.eraser;
+  show('race');
+  $('#ticker').innerHTML = ''; $('#finish').innerHTML = '';
+  $('#turncard').innerHTML = isClient() ? '<div class="tcbody"><p class="think">Catching up with the race…</p></div>' : '';
+  buildBoard(G); drawStandings(G);
+}
+function launch(G, resumed) {
+  if (hosting()) { G.room = net.code; G.gid = Math.random().toString(36).slice(2, 9); G.seq = (G.seq || 0) + (resumed ? 1000 : 0); }
+  else if (G.room) { if (ONLINE && resumed) { net.open(G.room, 'host', onRoomHost); store.set('dd.host', { code: G.room, t: Date.now() }); G.gid = Math.random().toString(36).slice(2, 9); G.seq = (G.seq || 0) + 1000; } else G.room = null; }
+  mount(G);
+  if (hosting()) { publishMeta('race'); pushSnap(G); }
+  const go = async () => { if (!resumed) await ui.say(G, `Starting order: ${G.order.map(i => G.racers[i].name).join(', ')}.`); await runGame(G); };
+  go().catch(e => { if (!(e instanceof Abort)) { console.error(e); if (G === cur) tick('Something went wrong, so this race has stopped. Leave the race and start a new one.', 'bad'); } });
+}
+
+/* ---------- finish screen ---------- */
+function confetti() {
+  if (reduced) return;
+  const box = document.createElement('div'); box.className = 'confetti';
+  const inks = ['var(--yellow)', 'var(--red)', 'var(--blue)', 'var(--purple)', '#fff'];
+  for (let i = 0; i < 40; i++) box.innerHTML += `<i style="left:${rnd(100)}%;background:${pick(inks)};animation-delay:${Math.random() * 0.8}s"></i>`;
+  document.body.appendChild(box); setTimeout(() => box.remove(), 3800);
+}
+function showFinish(G) {
+  const coop = G.mode === 'coop', won = G.result === 'win';
+  const first = G.racers[(G.finishOrder || [])[0]] || G.racers[0];
+  const rs = G.racers.slice().sort((a, b) => (b.pos - a.pos) || G.finishOrder.indexOf(a.id) - G.finishOrder.indexOf(b.id));
+  if (!coop) { const i = rs.indexOf(first); if (i > 0) { rs.splice(i, 1); rs.unshift(first); } }
+  const tot = G.racers.reduce((s, r) => s + r.asked, 0), right = G.racers.reduce((s, r) => s + r.correct, 0);
+  let rank = 0, prev = null;
+  const rowsHtml = rs.map((r, i) => {
+    const C = CH[r.charId];
+    if (coop) rank = r.finished ? '✓' : ''; else if (i === 0 || r.pos !== prev) rank = i + 1;
+    prev = r.pos;
+    return `<li><span class="pl">${rank}</span>${stk(C, 46)}<span class="sn"><b>${esc(r.name)}</b><small>${C.name}</small></span><span class="sp">${r.finished ? 'Finished' : 'Space ' + r.pos}<small>${r.correct} of ${r.asked} right</small></span></li>`;
+  }).join('');
+  const title = coop ? (won ? 'The team outran the Eraser' : 'The Eraser wiped the board') : `${esc(first.name)} wins the derby`;
+  const line = coop
+    ? (won ? `Everyone made it home with ${G.chalk} ${G.chalk === 1 ? 'stick' : 'sticks'} of chalk to spare.` : `${G.finishOrder.length} of ${G.racers.length} racers made it home before the chalk ran out.`)
+    : `${CH[first.charId].name} crossed the line in round ${G.round}.`;
+  const ord = ['1st', '2nd', '3rd'];
+  const pod = [1, 0, 2].filter(i => rs[i]).map(i => `<div class="pcol p${i + 1}">${stk(CH[rs[i].charId], i ? 72 : 104)}<b>${esc(rs[i].name)}</b><div class="pblock">${ord[i]}</div></div>`).join('');
+  const client = isClient();
+  $('#finish').innerHTML = `<div class="fin">
+    <div class="champ">${coop ? `<div class="team">${G.racers.map(r => stk(CH[r.charId], 76)).join('')}</div>` : ''}
+      <h1>${title}</h1>${coop ? '' : `<div class="podium">${pod}</div>`}<p class="lede onfield">${line} Together you answered ${right} of ${tot} questions correctly.</p>
+      ${client ? '<p class="onfield">Waiting for the host to start the next race…</p>' : '<div class="finbtns"><button class="btn big" id="again">Race again</button><button class="btn ghost big" id="change">Change racers or settings</button></div>'}</div>
+    <div class="panel"><h2>${coop ? 'The team' : 'Final places'}</h2><ol class="places">${rowsHtml}</ol></div></div>`;
+  if (!client) cur = null;
+  show('finish');
+  if (!client) {
+    $('#again').onclick = () => launch(newGame(Object.assign({}, S, { racers: roster() })));
+    $('#change').onclick = goHome;
+    $('#again').focus({ preventScroll: true });
+  }
+  if (won) { sfx.win(); confetti(); } else sfx.back();
+}
+
+/* ---------- go ---------- */
+wireHome(); goHome();
+if (ONLINE) {
+  const h = store.get('dd.host');
+  if (h && h.code && Date.now() - h.t < 6 * 3600e3) net.req('GET', 'meta', undefined, h.code).then(m => { if (m && !net.code) { net.open(h.code, 'host', onRoomHost); const g = store.get('dd.game'); if (!(g && g.room === h.code && !g.over)) publishMeta('lobby'); renderRacers(); } else if (!m) store.del('dd.host'); }).catch(() => {});
+}
+if (window.ResizeObserver) new ResizeObserver(() => { if (!cur) return; if (colsFor() !== cols) buildBoard(cur); else place(); }).observe($('#race'));
+window.addEventListener('resize', () => { if (cur) place(); });
+
+</script>
+</body>
+</html>
