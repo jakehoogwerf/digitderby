@@ -183,6 +183,21 @@ select{background:var(--card);border:2.5px solid var(--line);border-radius:10px;
 .slab.shake{animation:shake2 .4s .22s}
 @keyframes shake2{20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,2px)}}
 
+/* move preview, power callout, right-answer feedback */
+.preview{text-align:center;font-weight:700;font-size:.95rem;color:var(--soft);margin:-2px 0 2px}
+.pcall{background:var(--inset);border:2.5px solid var(--line);border-radius:14px;padding:10px 14px 12px;animation:pop .45s}
+.pcall .ptag{display:inline-block;background:var(--purple);color:#fff;border-radius:999px;padding:.05em .8em;font-weight:700;font-size:.78rem;margin-bottom:4px}
+.pcall b{display:block;font:400 1.2rem/1.2 var(--disp)}
+.pcall p{margin-top:4px;font-size:.92rem;line-height:1.35}
+.pcall .sub{color:var(--soft)}
+.ans button{overflow:visible}
+.spark{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:3px;pointer-events:none;z-index:3;animation:spark .65s ease-out forwards}
+@keyframes spark{from{transform:translate(0,0) rotate(0);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(200deg) scale(.3);opacity:0}}
+.who.cheer{animation:cheerpop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes cheerpop{0%{transform:scale(1)}40%{transform:scale(1.04) rotate(-1.5deg)}100%{transform:scale(1)}}
+.ans .nudge{animation:nudge .4s}
+@keyframes nudge{30%{transform:translateX(-4px) rotate(-1deg)}70%{transform:translateX(4px) rotate(1deg)}}
+
 /* dialogs */
 dialog{width:min(1080px,94vw);max-height:88vh;border:3px solid var(--line);border-radius:24px;background:var(--card);color:var(--text);padding:22px;box-shadow:0 10px 0 var(--line)}
 dialog#howto{width:min(640px,94vw)}
@@ -242,7 +257,7 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
 .tok.run .tb{animation:bob .42s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-22%) rotate(-7deg)}}
 .tok.done{opacity:.6}
-.tok.zap .tb{animation:zap .5s}
+.tok.zap .tb{animation:zap .6s}
 @keyframes zap{40%{transform:scale(1.5) rotate(-12deg)}}
 .tok.er{z-index:4}
 .tok.er .tb{border-radius:22%;background:#fff}
@@ -1094,6 +1109,7 @@ function tone(f, d = 0.12, type = 'triangle', when = 0, vol = 0.07) {
 }
 const sfx = {
   good() { tone(660, 0.1); tone(880, 0.2, 'triangle', 0.1); },
+  cheer() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.22, 'triangle', i * 0.065, 0.075)); tone(1568, 0.3, 'sine', 0.36, 0.05); },
   bad() { tone(196, 0.28, 'sawtooth', 0, 0.04); },
   hop() { tone(520, 0.04, 'square', 0, 0.025); },
   dice() { for (let i = 0; i < 6; i++) tone(260 + rnd(320), 0.03, 'square', i * 0.09, 0.025); },
@@ -1566,6 +1582,21 @@ async function moment(G, r, title, sub) {
   try { await sleep(G, 1300); m.classList.add('out'); await sleep(G, 200); } finally { m.hidden = true; }
 }
 
+const DIE_NAME = { main: 'a main die', bonus: 'a bonus die', power: 'a power die' };
+function previewLine(dice) {
+  const parts = dice.map(d => `${DIE_NAME[d.kind]} (1–${d.sides})`).join(' and ');
+  return `You’ll roll ${parts}. You move the total, plus any power bonus.`;
+}
+function sparkle(el, n = 12) {
+  if (reduced || !el) return;
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('i'), a = i / n * Math.PI * 2 + Math.random() * 0.4, d = 60 + Math.random() * 50;
+    s.className = 'spark'; s.style.setProperty('--dx', Math.cos(a) * d + 'px'); s.style.setProperty('--dy', Math.sin(a) * d + 'px');
+    s.style.background = pick(['var(--yellow)', 'var(--red)', 'var(--blue)', 'var(--purple)', '#fff']);
+    el.appendChild(s); setTimeout(() => s.remove(), 700);
+  }
+}
+
 /* V draws one event. The host and every joined device run the same drawing code. */
 const V = {
   async turn(G, e) {
@@ -1601,14 +1632,20 @@ const V = {
     card.querySelectorAll('[data-skip]').forEach(b => b.remove());
     const tm = card.querySelector('.timer i'); if (tm) tm.style.animationPlayState = 'paused';
     const fb = $('#fb'); if (fb) { fb.className = 'fb ' + (e.ok ? 'good' : 'bad'); fb.textContent = e.ok ? (e.quiz ? 'Right. That’s 3 more spaces.' : 'Right. Bonus die unlocked.') : (e.choice < 0 ? 'Out of time.' : 'Not this time.') + (e.quiz ? '' : ' Main die only.'); }
-    if (e.ok) sfx.good(); else sfx.bad();
-    await sleep(G, e.ok ? 950 : 1900);
+    if (e.ok) {
+      sfx.cheer();
+      const btn = card.querySelector('.ans .right'); sparkle(btn, 16);
+      const who = card.querySelector('.who'); if (who && !reduced) { who.classList.remove('cheer'); void who.offsetWidth; who.classList.add('cheer'); }
+      const t = $('#tok-' + r.id); if (t) { t.classList.remove('zap'); void t.offsetWidth; t.classList.add('zap'); sparkle(t, 10); }
+    } else { sfx.bad(); const w = card.querySelector('.ans .wrong'); if (w && !reduced) w.classList.add('nudge'); }
+    await sleep(G, e.ok ? 1100 : 1900);
   },
   async dice(G, e) {
     guard(G);
     const r = G.racers[e.rid], C = CH[r.charId], names = { main: 'Main die', bonus: 'Bonus die', power: 'Power die' };
     $('#turncard').innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b></div></div>
       <div class="tcbody"><p class="fb ${e.correct ? 'good' : 'bad'}">${e.correct ? 'Right answer' : `Missed. The answer was <span class="ansv">${e.answer || ''}</span>`}</p>
+      <p class="preview">${previewLine(e.dice)}</p>
       <div class="tray">${e.dice.map((d, i) => `<div class="dwrap"><div class="die ${d.kind}" id="die${i}">${face(0)}</div><small>${names[d.kind]}${d.sides !== 6 ? ` (${d.sides} sides)` : ''}</small><em id="dn${i}"></em></div>`).join('')}</div>
       <ul class="mods" id="mods"></ul><p class="total" id="total" hidden></p>
       <div class="act" id="ract">${r.bot ? '' : actArea(r, 'Roll the dice', 'roll')}</div>${skipBtn(r)}</div>`;
@@ -1632,6 +1669,11 @@ const V = {
     await sleep(G, 400);
     const big = e.mods.reduce((s, m) => s + m.n, 0);
     if (big >= 3) await moment(G, r, e.mods[0].t.replace(/\s*\(.*\)$/, ''), `${big} more spaces`);
+    const pr = CH[r.charId];
+    if (e.mods.length) {
+      const callout = `<div class="pcall"><span class="ptag">Power on</span><b>${e.mods.map(m => esc(m.t)).join(' and ')}</b><p>${pr.text}</p><p class="sub">Rolled ${e.dice.map(d => d.v).join(' + ')}.</p></div>`;
+      const at = $('#mods'); if (at) at.insertAdjacentHTML('beforebegin', callout);
+    }
     const ml = $('#mods'); if (ml) ml.innerHTML = e.mods.map(m => `<li><span>${esc(m.t)}</span><b>${m.n > 0 ? '+' : '−'}${Math.abs(m.n)}</b></li>`).join('');
     if (e.mods.length && big < 3) sfx.pow();
     const t = $('#total'); if (t) { t.hidden = false; t.innerHTML = `Move <span class="burst"><b>${e.move}</b></span>`; }
