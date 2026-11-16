@@ -391,6 +391,40 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
   .tok,.tok.slide{transition:none}
 }
 
+/* colour themes: set on <html data-theme>. Each one redefines the full palette. */
+.themelab{display:flex;align-items:center;gap:6px;font-weight:700;font-size:.88rem}
+.themelab select{padding:.3em .5em;border-radius:12px;box-shadow:0 4px 0 var(--line)}
+:root[data-theme="sports"]{
+  --grass:#35a556; --grass2:#3cb05f; --infield:#27894a; --infield2:#2c9250;
+  --track:#de5b40; --track2:#cf4c33; --lane:#fffaf0; --wipe:#8a9a8f;
+  --line:#161b3a; --card:#ffffff; --inset:#eef1fb; --text:#161b3a; --soft:#525b86;
+  --onfield:#0f2418; --slate:#1b2150; color-scheme:light;
+}
+:root[data-theme="night"]{
+  --grass:#0f3223; --grass2:#123a29; --infield:#0b281c; --infield2:#0e2f21;
+  --track:#b8472f; --track2:#a63c27; --lane:#f6efdc; --wipe:#3c4a43;
+  --line:#05071a; --card:#232a58; --inset:#191f47; --text:#f4f1e6; --soft:#b4bbe0;
+  --onfield:#f4f1e6; --slate:#0d1130; color-scheme:dark;
+}
+:root[data-theme="ocean"]{
+  --grass:#2a9fc4; --grass2:#2fabd0; --infield:#1d6f93; --infield2:#21799f;
+  --track:#ef7b63; --track2:#e06a53; --lane:#fffaf0; --wipe:#7fb3c4;
+  --line:#0d2c44; --card:#ffffff; --inset:#e6f5fb; --text:#0d2c44; --soft:#3b6378;
+  --onfield:#06263a; --slate:#0d3a57; color-scheme:light;
+}
+:root[data-theme="space"]{
+  --grass:#1b1f4a; --grass2:#20265a; --infield:#0d0f2b; --infield2:#101433;
+  --track:#7b4fd6; --track2:#6a40c2; --lane:#f4f1ff; --wipe:#3a3f6e;
+  --line:#05061a; --card:#252b63; --inset:#1d2250; --text:#f4f1ff; --soft:#b9bfe9;
+  --onfield:#f4f1ff; --slate:#0a0c24; color-scheme:dark;
+}
+:root[data-theme="candy"]{
+  --grass:#f7a8c8; --grass2:#f9b4d1; --infield:#d89be0; --infield2:#dda6e6;
+  --track:#5fd1b5; --track2:#4fc2a6; --lane:#ffffff; --wipe:#c8d4cf;
+  --line:#3b2446; --card:#fff7fb; --inset:#fde7f2; --text:#3b2446; --soft:#7a5a7a;
+  --onfield:#3b2446; --slate:#5b3370; color-scheme:light;
+}
+
 </style>
 </head>
 <body>
@@ -404,6 +438,9 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
       <button class="btn ghost sm" id="meet">Meet the racers</button>
       <button class="btn ghost sm" id="how">How to play</button>
       <button class="btn ghost sm" id="snd" aria-pressed="true">Sound on</button>
+      <label class="themelab"><span>Theme</span><select id="theme" aria-label="Choose a colour theme">
+        <option value="sports">Sports field</option><option value="night">Night match</option><option value="ocean">Ocean</option><option value="space">Space</option><option value="candy">Candy</option>
+      </select></label>
     </div>
   </header>
 
@@ -1095,6 +1132,16 @@ const TIMERS = [[0, 'No limit'], [30, '30 seconds'], [15, '15 seconds']];
 const LENS = [[30, 'Quick (30 spaces)'], [50, 'Classic (50)'], [70, 'Marathon (70)']];
 const pause = ms => new Promise(r => setTimeout(r, ms));
 
+/* ---------- colour themes (each device picks its own; saved on that device) ---------- */
+const THEMES = ['sports', 'night', 'ocean', 'space', 'candy'];
+function applyTheme(t) {
+  const v = THEMES.includes(t) ? t : 'sports';
+  document.documentElement.setAttribute('data-theme', v);
+  const sel = $('#theme'); if (sel) sel.value = v;
+  return v;
+}
+applyTheme(store.get('dd.theme'));
+
 /* ---------- sound ---------- */
 let actx = null, soundOn = store.get('dd.sound') !== false;
 function tone(f, d = 0.12, type = 'triangle', when = 0, vol = 0.07) {
@@ -1366,6 +1413,7 @@ function wireHome() {
   $('#how').onclick = () => $('#howto').showModal();
   $$('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); }));
   const snd = $('#snd'), paint = () => { snd.textContent = soundOn ? 'Sound on' : 'Sound off'; snd.setAttribute('aria-pressed', soundOn); };
+  $('#theme').onchange = e => { store.set('dd.theme', applyTheme(e.target.value)); };
   snd.onclick = () => { soundOn = !soundOn; store.set('dd.sound', soundOn); paint(); if (soundOn) sfx.pow(); }; paint();
   let armed = 0;
   $('#leave').onclick = e => {
