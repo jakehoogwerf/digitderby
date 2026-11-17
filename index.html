@@ -1001,6 +1001,8 @@ const CHARS = [
     total(G, r, c) { if (c.correct) r.mem.bank = (r.mem.bank || 0) + 1; if ((r.mem.bank || 0) >= 3) { r.mem.bank = 0; mod(c, 'Savings (cashed in 3 coins)', 6); } } },
   { id: 'thyla', name: 'Thyla-Sine', e: '🐯', power: 'Sine Wave', text: 'Your moves rise and fall like a wave. It starts low, rises to 3 more spaces, falls to 2 more, stays low for 2 turns, then rises again.',
     total(G, r, c) { const n = [0, 0, 3, 2][r.turns % 4]; if (n) mod(c, n === 3 ? 'Sine Wave (crest)' : 'Sine Wave (falling)', n); } },
+  { id: 'sheep', name: 'Ewe-clid', e: '🐑', power: 'Follow the Flock', text: 'If the racer who went just before you is ahead of you, follow them for 2 more spaces.',
+    total(G, r, c) { const n = G.order.length, prev = G.racers[G.order[(G.order.indexOf(r.id) - 1 + n) % n]]; if (prev && prev !== r && !prev.finished && prev.pos > c.startPos) mod(c, `Follow the Flock (behind ${prev.name})`, 2); } },
 ];
 const CH = {}; CHARS.forEach((c, i) => { CH[c.id] = c; c.hue = (i * 47 + 8) % 360; });
 
@@ -1340,6 +1342,10 @@ const ART = (() => {
       + S('M50 27v10M42 29.5l2.5 9M58 29.5l-2.5 9', '#5a3a1e', 4) + mir(S('M24.5 50l7 2M24 58l7 1', '#5a3a1e', 3.6))
       + E(50, 70, 12.5, 15, '#f1d3ae') + E(50, 61.5, 5, 3.6, K, 0, 0) + S('M50 65v6M44.5 74q5.5 4 11 0', K, 2.8) + eyes(11, 47)
       + C(81, 21, 12, '#ffc928', 3) + S('M72.5 22q4.25 -7 8.5 0t8.5 0', K, 2.6),
+    sheep: () => [[50, 26], [33, 31], [67, 31], [24, 46], [76, 46], [26, 64], [74, 64], [37, 78], [63, 78], [50, 82]].map(([x, y]) => C(x, y, 13, '#fbf8f1', 3.5)).join('')
+      + F(50, 54, 30, 30, '#fbf8f1') + mir(E(23, 47, 10, 5, '#3b3247', 18)) + E(50, 56, 17, 21, '#3b3247') + mir(F(43, 37, 6.5, 5, '#fbf8f1'))
+      + D(43, 52, 4.2, '#fff') + D(57, 52, 4.2, '#fff') + D(43.5, 52.5, 2.3) + D(57.5, 52.5, 2.3) + S('M45.5 66q4.5 3 9 0', '#fff', 2.6) + D(46.5, 61.5, 1.4, '#fff') + D(53.5, 61.5, 1.4, '#fff')
+      + C(81, 21, 12, '#ffc928', 3) + P('M74.5 26h13L81 14.5z', 'none', 2.6),
     eraser: () => `<g transform="rotate(-12 50 54)">${RR(16, 34, 68, 40, 9, '#ff8fb1')}${FP('M16 43a9 9 0 0 1 9 -9h17v40h-17a9 9 0 0 1 -9 -9z', '#5aa0f2')}${RR(16, 34, 68, 40, 9, 'none')}${S('M42 34v40', K, 3.5)}</g>` + mir(S('M33 44l11 5', K, 4)) + eyes(11, 54, 4) + S('M42 66q8 -6 16 0', K, 3.2),
   };
   return id => `<svg class="art" viewBox="0 0 100 100" aria-hidden="true">${(A[id] || A.zero)()}</svg>`;
