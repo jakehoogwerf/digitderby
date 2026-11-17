@@ -1487,6 +1487,23 @@ const SBC = {
   },
 };
 
+/* When the live connection fails, ask Supabase a plain web question to work out why. */
+async function sbProbe() {
+  try {
+    const r = await fetch(SB_URL + '/auth/v1/health', { headers: { apikey: SB_KEY } });
+    if (r.status === 401 || r.status === 403) return 'BADKEY';
+    return r.ok ? 'WEBOK' : 'HTTP' + r.status;
+  } catch (e) { return 'NOREACH'; }
+}
+async function netExplain(e) {
+  if (!USE_SB || !e || !['CHANNEL_ERROR', 'CLOSED', 'TIMED_OUT'].includes(e.sb)) return netHint(e);
+  const pr = await sbProbe(), raw = esc(String(e.message || e)), u = `<code>${esc(SB_URL)}</code>`;
+  const tip = pr === 'BADKEY' ? `Your project at ${u} rejected the key. Copy the <b>anon</b> or <b>publishable</b> key again from Project Settings → API Keys, and check there are no spaces or missing characters.`
+    : pr === 'NOREACH' ? `This device can’t reach ${u} at all. Check the project URL is right, and that the project isn’t paused (the Supabase dashboard shows a Restore button if it is). If both are fine, this network may be blocking Supabase; try a phone on mobile data.`
+    : pr === 'WEBOK' ? `Your URL and key are both fine, but the live connection Supabase uses (a WebSocket) is being blocked. That’s usually a school or office network filter, or a browser extension. Try a phone on mobile data, or ask IT to allow WebSocket connections to <code>*.supabase.co</code>.`
+    : `Your project at ${u} answered with an error (${esc(pr)}). It may be paused or still starting up; check the Supabase dashboard and try again in a minute.`;
+  return `${tip} <span class="errdetail">(Details: ${raw}; check: ${esc(pr)})</span>`;
+}
 function netHint(e) {
   const k = e && e.sb, raw = esc(String(e && e.message || e || 'unknown'));
   if (!USE_SB) return 'Check the address in config.js and your connection, then reload.';
@@ -1632,7 +1649,7 @@ async function openRoom() {
     store.del('dd.room');
     net.open(code, 'host', onRoomHost); store.set('dd.host', { code, t: Date.now() });
     publishMeta('lobby');
-  } catch (e) { console.error(e); net.close(); store.del('dd.host'); $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. ${netHint(e)}</p><button class="btn ghost sm" id="openroom">Try again</button>`; $('#openroom').onclick = openRoom; return; }
+  } catch (e) { console.error(e); net.close(); store.del('dd.host'); $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. Checking why…</p>`; const why = await netExplain(e); $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. ${why}</p><button class="btn ghost sm" id="openroom">Try again</button>`; $('#openroom').onclick = openRoom; return; }
   renderRacers();
 }
 function closeRoom() { if (!hosting()) return; const code = net.code; net.req('DELETE', '', undefined, code).catch(() => {}); net.close(); store.del('dd.host'); store.del('dd.room'); renderRacers(); }
@@ -1838,7 +1855,7 @@ async function joinRoom(code, name) {
     store.set('dd.name', name); store.set('dd.join', { code, name, t: Date.now() });
     cur = null; CL.gid = null; CL.last = 0; CL.q = {}; CL.gen++; CL.screen = '';
     net.open(code, 'client', onRoomClient);
-  } catch (e) { console.error(e); $('#jerr').innerHTML = 'Couldn’t reach the game server. ' + netHint(e); }
+  } catch (e) { console.error(e); $('#jerr').textContent = 'Couldn’t reach the game server. Checking why…'; $('#jerr').innerHTML = 'Couldn’t reach the game server. ' + await netExplain(e); }
   finally { $('#jgo').disabled = false; }
 }
 function leaveRoom(msg) {
