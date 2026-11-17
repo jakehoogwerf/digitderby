@@ -424,6 +424,42 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
   --line:#3b2446; --card:#fff7fb; --inset:#fde7f2; --text:#3b2446; --soft:#7a5a7a;
   --onfield:#3b2446; --slate:#5b3370; color-scheme:light;
 }
+/* time questions */
+.q .clock{display:block;width:150px;height:150px;margin:0 auto 10px;filter:drop-shadow(0 5px 0 rgba(0,0,0,.25))}
+.q .qt{display:block}
+.ans.long button{font-size:1.2rem}
+.ans.xlong button{font-size:1rem;line-height:1.2}
+
+/* boards, shortcuts, bridges */
+.slab.b-river{background:#2b8fc9 repeating-linear-gradient(0deg,#2b8fc9 0 40px,#2f99d4 40px 80px)}
+.slab.b-mountain{background:#5f7d63 repeating-linear-gradient(135deg,#5f7d63 0 34px,#668569 34px 68px)}
+.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.t-short .ti{background:#19bfae;color:#161b3a}
+.ti .arw{width:58%;height:58%}
+.t-bridge .ti{background:#b07a43 repeating-linear-gradient(90deg,#b07a43 0 17%,#8f5f30 17% 21%);color:#fff;border-style:solid}
+.t-bridge.hp2 .ti{box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+.t-bridge.hp2 .ti::after,.t-bridge.hp1 .ti::after,.t-bridge.hp1 .ti::before{content:"";position:absolute;left:18%;right:30%;top:58%;height:3px;background:#3a2410;transform:rotate(-24deg);border-radius:2px}
+.t-bridge.hp1 .ti{background:#8f5f30 repeating-linear-gradient(90deg,#8f5f30 0 17%,#6e4520 17% 21%)}
+.t-bridge.hp1 .ti::before{left:40%;right:12%;top:30%;transform:rotate(28deg)}
+.t-bridge.t-broken .ti{background:rgba(10,30,60,.35);border:2px dashed rgba(255,255,255,.75);color:rgba(255,255,255,.8)}
+.t-bridge.t-broken .ti::after,.t-bridge.t-broken .ti::before{display:none}
+
+/* item cards */
+.cardrow{display:flex;flex-direction:column;gap:8px}
+.icard{display:flex;gap:12px;align-items:center;text-align:left;background:var(--inset);color:var(--text);border:2.5px solid var(--line);border-radius:14px;padding:8px 12px;font:inherit}
+button.icard{background:var(--yellow);color:#161b3a;box-shadow:0 4px 0 var(--line);cursor:pointer;transition:transform .06s}
+button.icard:hover{filter:brightness(1.06)}
+button.icard:active{transform:translateY(4px);box-shadow:none}
+.icard .cicon{width:42px;height:42px;flex:none}
+.icard b{display:block;font-size:1rem}
+.icard small{display:block;font-size:.82rem;line-height:1.25;opacity:.85}
+.icard.off{opacity:.55}
+.mini{display:inline-block;width:20px;height:20px;margin-left:4px;vertical-align:-4px}
+.mini .cicon{width:100%;height:100%;display:block}
+.mcard.cardm .mtop .cicon{position:relative;width:130px;height:130px;filter:drop-shadow(0 6px 0 rgba(22,27,58,.35));animation:pop .5s .2s backwards}
+.tag.lv{background:var(--purple)}
+.forkbtns{flex-direction:column;gap:12px}
+label.adapt{margin-top:10px}
 
 </style>
 </head>
@@ -487,6 +523,8 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
             <label for="glevel">Level for everyone</label>
             <select id="glevel"></select>
             <p class="sub">You can still give each racer their own level in the list.</p>
+            <label class="chk adapt"><input type="checkbox" id="adapt"> Adjust each racer’s level as they play</label>
+            <p class="sub">3 right in a row moves a racer up a level. 2 misses in a row moves them down.</p>
           </div>
           <div class="field">
             <span class="flabel" id="tlabel">Question types</span>
@@ -499,6 +537,11 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
           <div class="field">
             <span class="flabel" id="lnlabel">Race length</span>
             <div class="seg" id="len" role="radiogroup" aria-labelledby="lnlabel"></div>
+          </div>
+          <div class="field">
+            <span class="flabel" id="bdlabel">Board</span>
+            <div class="seg" id="boardpick" role="radiogroup" aria-labelledby="bdlabel"></div>
+            <p class="sub" id="bdhint"></p>
           </div>
           <div class="field" id="erfield" hidden>
             <span class="flabel" id="erlabel">Eraser speed</span>
@@ -558,7 +601,10 @@ button.cc:disabled .cart,button.cc:disabled .cn,button.cc:disabled .cp,button.cc
   <div class="rules">
     <p><b>Your turn.</b> Answer a maths question, then roll. Everyone rolls the main die. A right answer adds a bonus die, so you move further.</p>
     <p><b>Your power.</b> Each racer has one power. It switches on by itself whenever its rule is met, and the game shows you when it does.</p>
-    <p><b>Special spaces.</b> <span class="key k-boost">+2</span> boosts you 2 ahead. <span class="key k-slip">−2</span> slips you 2 back. <span class="key k-quiz">?</span> is a pop quiz: get it right for 3 more.</p>
+    <p><b>Special spaces.</b> <span class="key k-boost">+2</span> boosts you 2 ahead. <span class="key k-slip">−2</span> slips you 2 back. <span class="key k-quiz">?</span> is a pop quiz: get it right to win an item card.</p>
+    <p><b>Item cards.</b> You can hold 2. <b>Shield</b> blocks the next thing that would send you backwards, all by itself. <b>Double move</b> and <b>Swap places</b> are played at the start of your turn. In team mode, Swap places is replaced by <b>Push back</b>, which pushes the Eraser back 5 spaces.</p>
+    <p><b>Boards.</b> The river crossing and mountain climb have <b>shortcuts</b> (a teal space with an arrow): answer a harder question to jump ahead, or slide back 2 if you miss. They also have <b>bridges</b>: each racer who lands on one makes it creak, and the third landing collapses it, dropping everyone on it to the riverbank. After that, landing on the broken bridge drops you back too.</p>
+    <p><b>Levels.</b> With “Adjust each racer’s level as they play” switched on, 3 right answers in a row move a racer’s questions up a level, and 2 misses in a row move them down. The leaderboard shows each racer’s level.</p>
     <p><b>Race each other.</b> The first racer across the finish line wins.</p>
     <p><b>Team up.</b> The Eraser chases the team from the start line and wipes spaces as it goes. If it catches a racer, the team spends a stick of chalk to redraw them a little ahead. Get everyone across the line before the chalk runs out. Racers who have finished keep answering questions, and their rolls go to the teammate at the back. Powers that would push other racers back push the Eraser back instead.</p>
     <p><b>Playing on separate devices.</b> If this copy of the game has online play switched on, one person sets up the race and taps “Let others join”. Everyone else opens the same page, types the invite code and picks a racer. The race runs on the first person’s device, so that device needs to stay open.</p>
@@ -766,10 +812,75 @@ const GEN = {
     const big = b + R(1, 6); return QN(`${a} × (${b} − ${big})`, a * (b - big), [a * (big - b), a * b - big], { neg: 1 });
   },
 };
+
+/* ---------- time questions ---------- */
+const pad2 = n => String(n).padStart(2, '0');
+const tDig = (h, m) => `${h}:${pad2(m)}`;
+const nextH = h => h % 12 + 1, prevH = h => (h + 10) % 12 + 1;
+function tWords(h, m) {
+  if (m === 0) return `${h} o’clock`;
+  if (m === 30) return `half past ${h}`;
+  if (m === 15) return `quarter past ${h}`;
+  if (m === 45) return `quarter to ${nextH(h)}`;
+  return m < 30 ? `${m} past ${h}` : `${60 - m} to ${nextH(h)}`;
+}
+function dAdd(h, m, d) { let t = ((h % 12) * 60 + m + d) % 720; if (t < 0) t += 720; const H = Math.floor(t / 60); return tDig(H || 12, t % 60); }
+const wrap = t => ((t % 1440) + 1440) % 1440;
+function f12(t) { t = wrap(t); const H = Math.floor(t / 60); return `${H % 12 || 12}:${pad2(t % 60)} ${H < 12 ? 'am' : 'pm'}`; }
+function f24(t) { t = wrap(t); return `${pad2(Math.floor(t / 60))}:${pad2(t % 60)}`; }
+function hm(n) { const H = Math.floor(n / 60), m = n % 60; return H && m ? `${H} h ${m} min` : H ? `${H} h` : `${m} min`; }
+function clockSVG(h, m) {
+  const p = (a, r) => [(50 + Math.sin(a) * r).toFixed(1), (50 - Math.cos(a) * r).toFixed(1)];
+  let s = '<svg class="clock" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" fill="#fff" stroke="#161b3a" stroke-width="3.5"/>';
+  for (let i = 0; i < 60; i++) { const a = i * Math.PI / 30, [x1, y1] = p(a, i % 5 ? 42.5 : 39.5), [x2, y2] = p(a, 45); s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#161b3a" stroke-width="${i % 5 ? 0.8 : 2.2}"/>`; }
+  for (let n = 1; n <= 12; n++) { const [x, y] = p(n * Math.PI / 6, 32); s += `<text x="${x}" y="${(+y + 3.4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" font-family="Lexend,Verdana,sans-serif" fill="#161b3a">${n}</text>`; }
+  const [hx, hy] = p(((h % 12) + m / 60) * Math.PI / 6, 21), [mx, my] = p(m * Math.PI / 30, 34);
+  return s + `<line x1="50" y1="50" x2="${hx}" y2="${hy}" stroke="#e8443c" stroke-width="5.5" stroke-linecap="round"/><line x1="50" y1="50" x2="${mx}" y2="${my}" stroke="#161b3a" stroke-width="3.2" stroke-linecap="round"/><circle cx="50" cy="50" r="3.6" fill="#161b3a"/></svg>`;
+}
+const CLK = (h, m, txt) => clockSVG(h, m) + `<span class="qt">${txt || 'What time is it?'}</span>`;
+const FACTS1 = [['minutes in an hour', 60], ['hours in a day', 24], ['days in a week', 7], ['months in a year', 12], ['seconds in a minute', 60]];
+const FACTS2 = [['minutes in half an hour', 30], ['minutes in a quarter of an hour', 15], ['days in a fortnight', 14], ['days in a year', 365], ['weeks in a year', 52], ['minutes in 2 hours', 120]];
+GEN.time = function (l) {
+  const h = R(1, 12);
+  if (l === 1) {
+    const t = rnd(3), m = pick([0, 30]);
+    if (t === 0) return Q(CLK(h, m), tWords(h, m), [tWords(h, 30 - m), tWords(nextH(h), m), tWords(prevH(h), m), tWords(nextH(h), 30 - m)]);
+    if (t === 1) { const [f, n] = pick(FACTS1); return Q(`How many ${f}?`, String(n), shuffle(['7', '12', '24', '30', '60', '100', '365'])); }
+    return Q(`What time is 1 hour after ${tWords(h, m)}?`, tWords(nextH(h), m), [tWords(prevH(h), m), tWords(h, 30 - m), tWords(nextH(h), 30 - m), tWords(h, m)]);
+  }
+  if (l === 2) {
+    const t = rnd(4), m = rnd(3) ? pick([15, 30, 45]) : R(1, 11) * 5;
+    if (t === 0) return Q(CLK(h, m), tDig(h, m), [tDig(nextH(h), m), tDig(h, m / 5), tDig(m / 5 || 12, (h * 5) % 60), tDig(prevH(h), m), dAdd(h, m, 30)]);
+    if (t === 1) {
+      if (rnd(2)) return Q(`Write ${tDig(h, m)} in words`, tWords(h, m), [tWords(nextH(h), m), tWords(prevH(h), m), tWords(h, 60 - m), tWords(h, (m + 15) % 60)]);
+      return Q(`Write ${tWords(h, m)} as a digital time`, tDig(h, m), [tDig(nextH(h), m), tDig(prevH(h), m), tDig(h, 60 - m), dAdd(h, m, 15)]);
+    }
+    if (t === 2) { const d = pick([15, 30, 45, 60, 90]); return Q(`What time is ${d} minutes after ${tDig(h, m)}?`, dAdd(h, m, d), [dAdd(h, m, -d), dAdd(h, m, d + 60), dAdd(h, m, d - 10), dAdd(h, m, d + 10)]); }
+    const [f, n] = pick(FACTS2); return Q(`How many ${f}?`, String(n), shuffle(['14', '15', '28', '30', '45', '52', '60', '100', '120', '365', '366']));
+  }
+  if (l === 3) {
+    const t = rnd(4);
+    if (t === 0) { const sm = R(0, 11) * 5, d = R(3, 11) * 5, end = dAdd(h, sm, d), cross = sm + d >= 60; return QN(`How many minutes from ${tDig(h, sm)} to ${end}?`, d, [cross ? d + 40 : d + 10, d - 5, d + 15, 60 - d]); }
+    if (t === 1) {
+      const tm = (rnd(4) ? R(13, 23) : R(1, 11)) * 60 + R(0, 11) * 5, H = Math.floor(tm / 60), mm = pad2(tm % 60), ap = H < 12 ? 'am' : 'pm', hh = H % 12 || 12;
+      return Q(`What is ${f24(tm)} in 12-hour time?`, `${hh}:${mm} ${ap}`, [`${hh}:${mm} ${ap === 'am' ? 'pm' : 'am'}`, `${(H + 14) % 12 || 12}:${mm} ${ap}`, `${nextH(hh)}:${mm} ${ap}`, `${prevH(hh)}:${mm} ${ap}`]);
+    }
+    if (t === 2) { const H = R(1, 4), m = pick([15, 30, 45]); return QN(`How many minutes in ${hm(H * 60 + m)}?`, H * 60 + m, [H * 100 + m, H * 60 + m + 10, (H + 1) * 60 + m, H * 60 - m]); }
+    let m = R(1, 59); if (m % 5 === 0) m++;
+    return Q(CLK(h, m, 'What time is it, to the minute?'), tDig(h, m), [tDig(nextH(h), m), tDig(h, (m + 5) % 60), tDig(h, (m + 55) % 60), tDig(prevH(h), m)]);
+  }
+  const t = rnd(4);
+  if (t === 0) { const s = R(96, 143) * 5, d = R(14, 40) * 5; return Q(`A movie starts at ${f12(s)} and ends at ${f12(s + d)}. How long is it?`, hm(d), [hm(d + 60), hm(d - 60), hm(d + 10), hm(d - 10), hm(d + 40)]); }
+  if (t === 1) { const tm = rnd(5) ? R(156, 287) * 5 : R(0, 11) * 5; return Q(`What is ${f12(tm)} in 24-hour time?`, f24(tm), [f24(tm - 720), f24(tm - 120), f24(tm + 120), f24(tm + 600)]); }
+  if (t === 2) { const n = R(13, 48) * 5, a = Math.floor(n / 100), b = n % 100; return Q(`Write ${n} minutes in hours and minutes`, hm(n), [a ? (b ? `${a} h ${b} min` : `${a} h`) : hm(n + 120), hm(n + 60), hm(n - 60), hm(n + 10), hm(n - 10)]); }
+  const s = R(72, 143) * 5, d = pick([75, 105, 135, 150, 165, 195, 225]);
+  return Q(`What time is ${hm(d)} after ${f12(s)}?`, f12(s + d), [f12(s + d + 60), f12(s + d - 60), f12(s + d + 720), f12(s + d + 10)]);
+};
+
 const TOPICS = [
   ['add', 'Addition'], ['sub', 'Subtraction'], ['mul', 'Multiplication'], ['div', 'Division'],
   ['frac', 'Fractions'], ['place', 'Place value and rounding'], ['alg', 'Missing numbers and patterns'],
-  ['pct', 'Doubles, halves and percentages'], ['order', 'Multi-step and order of operations'],
+  ['pct', 'Doubles, halves and percentages'], ['order', 'Multi-step and order of operations'], ['time', 'Time'],
 ];
 const LEVELS = [
   { n: 1, name: 'Level 1', hint: 'around Years 1–2' }, { n: 2, name: 'Level 2', hint: 'around Years 3–4' },
@@ -889,6 +1000,7 @@ async function finish(G, r) {
 async function shift(G, r, d, why, kind) {
   if (r.finished || G.over || !d) return 0;
   if (d < 0 && r.charId === 'otter') { d = -d; why = `Flip the Sign (${why})`; kind = 'power'; }
+  if (d < 0 && r.pos > 0 && useCard(r, 'shield')) { await ui.card(G, r, 'shield', 'used', `${r.name}’s shield blocks it (${why}).`); return 0; }
   const from = r.pos, to = Math.max(0, Math.min(G.len, from + d));
   if (to === from) return 0;
   r.pos = to;
@@ -915,22 +1027,104 @@ async function advance(G, r, n, c) {
   for (const o of c.passed.concat(met)) { const C = CH[o.charId]; if (C.onPassed && !G.over) await C.onPassed(G, o, r); }
 }
 async function ask(G, r, level, meta) {
+  meta = meta || {};
   const q = makeQuestion(G.topics, level);
-  const a = await ui.ask(G, r, q, meta || {});
+  const a = await ui.ask(G, r, q, Object.assign({ level }, meta));
   r.asked++; if (a.correct) r.correct++;
+  if (G.adapt && !meta.shortcut) await adapt(G, r, a.correct);
   return a;
+}
+/* Adaptive difficulty: 3 right in a row moves a racer up a level, 2 misses in a row moves them down. */
+async function adapt(G, r, ok) {
+  if (ok) { r.up = (r.up || 0) + 1; r.down = 0; } else { r.down = (r.down || 0) + 1; r.up = 0; }
+  if (r.up >= 3 && r.level < 4) { r.level++; r.up = 0; await ui.say(G, `${r.name} has got 3 right in a row, so their questions move up to Level ${r.level}.`, 'good'); }
+  else if (r.down >= 2 && r.level > 1) { r.level--; r.down = 0; await ui.say(G, `${r.name}’s questions move to Level ${r.level} for a bit.`); }
+}
+
+/* ---------- item cards ---------- */
+const CARDS = {
+  shield: { name: 'Shield', text: 'Blocks the next thing that would send you backwards. Used automatically.' },
+  double: { name: 'Double move', text: 'Play it at the start of your turn to double your move.' },
+  swap: { name: 'Swap places', text: 'Play it at the start of your turn to swap places with the racer just ahead of you.' },
+  rewind: { name: 'Push back', text: 'Play it at the start of your turn to push the Eraser back 5 spaces.' },
+};
+const MAXCARDS = 2;
+function hasCard(r, k) { return !r.finished && (r.cards || []).includes(k); }
+function useCard(r, k) { const i = (r.cards || []).indexOf(k); if (i < 0 || r.finished) return false; r.cards.splice(i, 1); return true; }
+function swapTarget(G, r) { return alive(G).filter(o => o !== r && o.pos > r.pos && o.pos < G.len).sort((a, b) => a.pos - b.pos)[0] || null; }
+function cardPlayable(G, r, k) {
+  if (k === 'double') return true;
+  if (k === 'swap') return G.mode !== 'coop' && !!swapTarget(G, r);
+  if (k === 'rewind') return G.mode === 'coop' && G.eraser > 0;
+  return false;
+}
+function botCard(G, r) {
+  for (const k of r.cards || []) {
+    if (k === 'double') return k;
+    if (k === 'swap') { const t = swapTarget(G, r); if (t && t.pos - r.pos >= 3) return k; }
+    if (k === 'rewind' && G.eraser > 0 && alive(G).some(o => o.pos - G.eraser <= 7)) return k;
+  }
+  return null;
+}
+async function giveCard(G, r) {
+  if (r.cards.length >= MAXCARDS) { await ui.say(G, `${r.name}’s hands are full, so the pop quiz is worth 3 spaces instead.`); await shift(G, r, 3, 'Pop quiz', 'boost'); return; }
+  const k = pick(G.mode === 'coop' ? ['shield', 'double', 'rewind'] : ['shield', 'double', 'swap']);
+  r.cards.push(k);
+  await ui.card(G, r, k, 'got', `${r.name} wins a ${CARDS[k].name} card.`);
+}
+async function playCard(G, r, c, k) {
+  if (!k || !hasCard(r, k) || !cardPlayable(G, r, k)) return;
+  useCard(r, k);
+  await ui.card(G, r, k, 'used', `${r.name} plays ${CARDS[k].name}.`);
+  if (k === 'double') c.dbl = true;
+  else if (k === 'swap') {
+    const t = swapTarget(G, r); if (!t) return;
+    const a = r.pos, b = t.pos;
+    await shift(G, t, a - b, `${r.name}’s swap`, 'push');
+    if (t.pos !== b) await shift(G, r, b - a, 'Swap places', 'power');
+  } else if (k === 'rewind') {
+    const f = G.eraser; G.eraser = Math.max(0, f - 5);
+    await ui.eraser(G, f, G.eraser, `${r.name} pushes the Eraser back ${f - G.eraser} spaces.`);
+  }
+}
+
+/* ---------- boards: shortcuts and bridges ---------- */
+const BOARDS = [
+  { id: 'classic', name: 'Classic track' },
+  { id: 'river', name: 'River crossing' },
+  { id: 'mountain', name: 'Mountain climb' },
+];
+async function takeShortcut(G, r) {
+  const to = G.shorts[r.pos];
+  const yes = r.bot ? Math.random() < (r.level >= 2 ? 0.7 : 0.5) : await ui.fork(G, r, to);
+  if (!yes) { await ui.say(G, `${r.name} stays on the track.`); return; }
+  const a = await ask(G, r, Math.min(4, r.level + 1), { shortcut: true });
+  if (a.correct) { await ui.say(G, `${r.name} takes the shortcut.`, 'good'); await shift(G, r, to - r.pos, 'Shortcut', 'boost'); }
+  else await shift(G, r, -2, 'Missed the shortcut', 'slip');
+}
+const bridgeAt = (G, p) => (G.bridges || []).find(b => p >= b.from && p <= b.to);
+async function crossBridge(G, r, b) {
+  if (b.broken) { await ui.say(G, `${r.name} lands on the broken bridge.`, 'bad'); await shift(G, r, b.from - 1 - r.pos, 'Broken bridge', 'slip'); return; }
+  b.hp--;
+  await ui.bridge(G, b.hp > 0 ? `The bridge creaks under ${r.name}. ${b.hp === 1 ? 'One more and it goes.' : 'It can take ' + b.hp + ' more.'}` : `The bridge collapses under ${r.name}!`, b.hp > 0 ? '' : 'bad');
+  if (b.hp > 0) return;
+  b.broken = true;
+  for (const o of alive(G)) if (!G.over && o.pos >= b.from && o.pos <= b.to) await shift(G, o, b.from - 1 - o.pos, 'Bridge collapsed', 'slip');
 }
 async function landing(G, r, c) {
   const C = CH[r.charId];
   if (C.land && await C.land(G, r, c)) return;
   if (G.over || r.finished) return;
+  const br = bridgeAt(G, r.pos);
+  if (br) { await crossBridge(G, r, br); return; }
+  if (G.shorts && G.shorts[r.pos]) { await takeShortcut(G, r); return; }
   const t = G.tiles[r.pos];
   if (t === 'boost') { await ui.say(G, `${r.name} lands on a boost space.`, 'good'); await shift(G, r, 2, 'Boost space', 'boost'); }
   else if (t === 'slip') { await ui.say(G, `${r.name} lands on a slip space.`, 'bad'); await shift(G, r, -2, 'Slip space', 'slip'); }
   else if (t === 'quiz') {
-    await ui.say(G, `${r.name} lands on a pop quiz space: a right answer is worth 3 more.`);
+    await ui.say(G, `${r.name} lands on a pop quiz space: a right answer wins an item card.`);
     const a = await ask(G, r, r.level, { quiz: true });
-    if (a.correct) await shift(G, r, 3, 'Pop quiz', 'boost');
+    if (a.correct) await giveCard(G, r);
   }
 }
 
@@ -939,7 +1133,9 @@ async function takeTurn(G, r, depth) {
   const helper = r.finished, C = helper ? {} : CH[r.charId];
   r.turns++; r.mem.crab = 0;
   const c = { depth, helper, correct: false, ms: 0, bonusN: 1, bonusSides: 6, powerDice: 0, dice: [], mods: [], passed: [], wasLast: isLast(G, r), prevMiss: !!r.lastMiss, startPos: r.pos, again: null };
-  await ui.turn(G, r, c);
+  const go = await ui.turn(G, r, c);
+  if (!helper) await playCard(G, r, c, r.bot ? botCard(G, r) : go && go.card);
+  if (G.over || r.finished) return;
   if (C.start) await C.start(G, r, c);
   if (G.over) return;
   c.startPos = r.pos;
@@ -956,6 +1152,7 @@ async function takeTurn(G, r, depth) {
   if (C.dice) C.dice(G, r, c);
   c.sum = c.dice.reduce((s, d) => s + d.v, 0);
   if (C.total) C.total(G, r, c);
+  if (c.dbl) mod(c, 'Double move card', Math.max(1, c.sum + c.mods.reduce((s, m) => s + m.n, 0)));
   c.move = Math.max(1, c.sum + c.mods.reduce((s, m) => s + m.n, 0));
   G.last = { main: c.dice[0].v, by: r.id };
   await ui.roll(G, r, c);
@@ -984,6 +1181,7 @@ async function eraserTurn(G) {
   for (const r of alive(G)) {
     if (G.over) break;
     if (r.pos <= G.eraser) {
+      if (useCard(r, 'shield')) { await ui.card(G, r, 'shield', 'used', `${r.name}’s shield saves the chalk.`); await shift(G, r, G.eraser + 3 - r.pos, 'Shielded', 'boost'); continue; }
       G.chalk--;
       if (G.chalk <= 0) { await ui.say(G, `The Eraser catches ${r.name} and the last stick of chalk snaps.`, 'bad'); G.over = true; G.result = 'lose'; break; }
       await ui.say(G, `The Eraser catches ${r.name}. The team spends a stick of chalk to redraw them.`, 'bad');
@@ -992,14 +1190,28 @@ async function eraserTurn(G) {
   }
 }
 
-function makeTiles(len) {
-  const tiles = {}, spots = shuffle(Array.from({ length: len - 7 }, (_, i) => i + 4)), n = Math.round(len / 12);
-  ['boost', 'slip', 'quiz'].forEach((k, j) => { for (let i = 0; i < n; i++) tiles[spots[j * n + i]] = k; });
-  return tiles;
+function makeBoard(len, board) {
+  const tiles = {}, shorts = {}, bridges = [], used = new Set([0, len]);
+  const free = (a, b) => { for (let i = a; i <= b; i++) if (used.has(i)) return false; return true; };
+  const take = (a, b) => { for (let i = a; i <= b; i++) used.add(i); };
+  const spec = { classic: { br: 0, sc: 0, k: 12 }, river: { br: 2, sc: 2, k: 15 }, mountain: { br: 1, sc: 3, k: 14 } }[board] || { br: 0, sc: 0, k: 12 };
+  for (let i = 0; i < spec.br; i++) for (let tries = 0; tries < 40; tries++) {
+    const f = Math.round(len * (0.3 + 0.4 * i / Math.max(1, spec.br - 1))) + R(-4, 4);
+    if (f > 6 && f + 2 < len - 4 && free(f - 2, f + 3)) { bridges.push({ from: f, to: f + 2, hp: 3, broken: false }); take(f - 2, f + 3); break; }
+  }
+  for (let i = 0; i < spec.sc; i++) for (let tries = 0; tries < 60; tries++) {
+    const f = Math.round(len * (0.15 + 0.6 * i / Math.max(1, spec.sc - 1))) + R(-3, 3), t = f + R(6, 9);
+    if (f > 3 && t < len - 2 && free(f, f) && free(t, t) && !bridges.some(b => t >= b.from - 1 && t <= b.to)) { shorts[f] = t; take(f, f); take(t, t); break; }
+  }
+  const spots = shuffle(Array.from({ length: len - 7 }, (_, i) => i + 4).filter(i => !used.has(i))), n = Math.round(len / spec.k);
+  const mix = board === 'mountain' ? ['boost', 'slip', 'slip', 'quiz'] : ['boost', 'slip', 'quiz'];
+  let j = 0; mix.forEach(k => { for (let i = 0; i < n && j < spots.length; i++) tiles[spots[j++]] = k; });
+  return { tiles, shorts, bridges };
 }
 function newGame(S) {
-  const racers = S.racers.map((p, i) => ({ id: i, name: (p.name || '').trim() || `Racer ${i + 1}`, charId: p.charId, level: p.level, bot: !!p.bot, owner: p.owner || '', pos: 0, streak: 0, correct: 0, asked: 0, turns: 0, lastMiss: false, finished: false, mem: {} }));
-  return { mode: S.mode, len: S.len, topics: S.topics.slice(), timer: S.timer, racers, order: shuffle(racers.map(r => r.id)), ti: 0, round: 1, over: false, result: null, tiles: makeTiles(S.len), eraser: 0, eraserLvl: S.eraser, chalk: 3 + Math.max(0, Math.floor((racers.length - 2) / 3)), finishOrder: [], last: null };
+  const racers = S.racers.map((p, i) => ({ id: i, name: (p.name || '').trim() || `Racer ${i + 1}`, charId: p.charId, level: p.level, bot: !!p.bot, owner: p.owner || '', cards: [], up: 0, down: 0, pos: 0, streak: 0, correct: 0, asked: 0, turns: 0, lastMiss: false, finished: false, mem: {} }));
+  const B = makeBoard(S.len, S.board);
+  return { mode: S.mode, len: S.len, board: BOARDS.some(b => b.id === S.board) ? S.board : 'classic', adapt: S.adapt !== false, topics: S.topics.slice(), timer: S.timer, racers, order: shuffle(racers.map(r => r.id)), ti: 0, round: 1, over: false, result: null, tiles: B.tiles, shorts: B.shorts, bridges: B.bridges, eraser: 0, eraserLvl: S.eraser, chalk: 3 + Math.max(0, Math.floor((racers.length - 2) / 3)), finishOrder: [], last: null };
 }
 async function runGame(G) {
   while (!G.over) {
@@ -1011,7 +1223,7 @@ async function runGame(G) {
   }
   await ui.end(G);
 }
-if (typeof module !== 'undefined') module.exports = { CHARS, CH, GEN, TOPICS, LEVELS, makeQuestion, newGame, runGame, setUI: u => { globalThis.ui = u; } };
+if (typeof module !== 'undefined') module.exports = { CHARS, CH, GEN, TOPICS, LEVELS, CARDS, BOARDS, makeBoard, makeQuestion, newGame, runGame, setUI: u => { globalThis.ui = u; } };
 
 /* ===== Digit Derby racer drawings (one shared kit, 40 faces) ===== */
 const ART = (() => {
@@ -1127,7 +1339,7 @@ const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce
 const speed = reduced ? 0.6 : 1;
 const BOT_P = 0.72, MAXR = 8;
 const ALLT = TOPICS.map(t => t[0]);
-const DEF_TOPICS = { 1: ['add', 'sub', 'place', 'alg'], 2: ['add', 'sub', 'mul', 'div', 'place', 'alg'], 3: ALLT, 4: ALLT };
+const DEF_TOPICS = { 1: ['add', 'sub', 'place', 'alg', 'time'], 2: ['add', 'sub', 'mul', 'div', 'place', 'alg', 'time'], 3: ALLT, 4: ALLT };
 const TIMERS = [[0, 'No limit'], [30, '30 seconds'], [15, '15 seconds']];
 const LENS = [[30, 'Quick (30 spaces)'], [50, 'Classic (50)'], [70, 'Marathon (70)']];
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -1169,7 +1381,7 @@ const sfx = {
 /* ---------- setup state (racers on this device) ---------- */
 function freshSetup() {
   const ids = shuffle(CHARS.map(c => c.id));
-  return { mode: 'versus', level: 2, topics: DEF_TOPICS[2].slice(), timer: 0, len: 50, eraser: 1, racers: [{ name: '', charId: ids[0], level: 2, bot: false }, { name: '', charId: ids[1], level: 2, bot: false }] };
+  return { mode: 'versus', level: 2, topics: DEF_TOPICS[2].slice(), timer: 0, len: 50, eraser: 1, board: 'classic', adapt: true, racers: [{ name: '', charId: ids[0], level: 2, bot: false }, { name: '', charId: ids[1], level: 2, bot: false }] };
 }
 function validSetup(s) {
   try {
@@ -1182,11 +1394,14 @@ function validSetup(s) {
     if (!TIMERS.some(t => t[0] === s.timer)) s.timer = 0;
     if (!LENS.some(t => t[0] === s.len)) s.len = 50;
     if (![0, 1, 2].includes(s.eraser)) s.eraser = 1;
+    if (!BOARDS.some(b => b.id === s.board)) s.board = 'classic';
+    s.adapt = s.adapt !== false;
     return s;
   } catch (e) { return null; }
 }
 let S = validSetup(store.get('dd.setup')) || freshSetup();
 const saveSetup = () => store.set('dd.setup', S);
+if (!store.get('dd.timeadded')) { if (!S.topics.includes('time')) S.topics.push('time'); store.set('dd.timeadded', 1); saveSetup(); }
 const nameOf = i => (S.racers[i].name || '').trim() || `Racer ${i + 1}`;
 
 /* ---------- online play (only when config.js gives a database address) ---------- */
@@ -1339,6 +1554,8 @@ function renderSettings() {
   $('#glevel').innerHTML = LEVELS.map(l => `<option value="${l.n}"${l.n === S.level ? ' selected' : ''}>${l.name}, ${l.hint}</option>`).join('');
   $('#topics').innerHTML = TOPICS.map(([k, t]) => `<label><input type="checkbox" value="${k}"${S.topics.includes(k) ? ' checked' : ''}><span>${t}</span></label>`).join('');
   seg('#timer', 'timer', TIMERS, S.timer); seg('#len', 'len', LENS, S.len);
+  seg('#boardpick', 'board', BOARDS.map(b => [b.id, b.name]), S.board); $('#bdhint').textContent = BOARD_HINT[S.board];
+  $('#adapt').checked = S.adapt;
   seg('#eraser', 'eraser', ERASER.map((e, i) => [i, e.name]), S.eraser);
   $('#erfield').hidden = S.mode !== 'coop';
 }
@@ -1405,6 +1622,8 @@ function wireHome() {
     if (!on.length) { renderSettings(); return; }
     S.topics = on; saveSetup();
   });
+  $('#boardpick').addEventListener('change', e => { S.board = e.target.value; $('#bdhint').textContent = BOARD_HINT[S.board]; saveSetup(); });
+  $('#adapt').onchange = e => { S.adapt = e.target.checked; saveSetup(); };
   [['#timer', 'timer'], ['#len', 'len'], ['#eraser', 'eraser']].forEach(([id, k]) => $(id).addEventListener('change', e => { S[k] = +e.target.value; saveSetup(); }));
   $('#start').onclick = () => { store.del('dd.game'); launch(newGame(Object.assign({}, S, { racers: roster() }))); };
   $('#rgrid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b && !b.disabled) choose(b.dataset.id); });
@@ -1425,7 +1644,10 @@ function wireHome() {
   $('#turncard').addEventListener('click', e => {
     if (e.target.closest('[data-skip]')) { skipTurn(); return; }
     const b = e.target.closest('[data-act]'); if (!b || b.disabled || !cue) return;
-    if (b.dataset.act === 'ans') act('ans', { choice: +b.dataset.v, ms: performance.now() - cue.t0 }); else act(b.dataset.act, 1);
+    if (b.dataset.act === 'ans') act('ans', { choice: +b.dataset.v, ms: performance.now() - cue.t0 });
+    else if (b.dataset.card) act('go', { card: b.dataset.card });
+    else if (b.dataset.act === 'fork') act('fork', b.dataset.v === '1');
+    else act(b.dataset.act, 1);
   });
   document.addEventListener('keydown', e => { const n = +e.key; if (cue && cue.kind === 'ans' && n >= 1 && n <= 4 && !e.ctrlKey && !e.metaKey && !e.altKey && !/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) act('ans', { choice: n - 1, ms: performance.now() - cue.t0 }); });
   $('#joinbox').hidden = !ONLINE;
@@ -1533,9 +1755,19 @@ function tick(text, tone) {
 function colsFor() { return ($('#board').parentElement.clientWidth || 800) < 620 ? 8 : 12; }
 function buildBoard(G) {
   const b = $('#board'); cols = colsFor(); path = [];
-  const sg = cols + 1;
-  for (let i = 0; i <= G.len; i++) { const s = Math.floor(i / sg), k = i % sg, ltr = s % 2 === 0; path.push(k < cols ? { c: ltr ? k : cols - 1 - k, r: s * 2 } : { c: ltr ? cols - 1 : 0, r: s * 2 + 1 }); }
+  if (G.board === 'mountain') {
+    const pc = cols / 2, H = Math.max(4, Math.ceil((G.len + 1) / pc) - 1);
+    for (let s = 0, i = 0; i <= G.len; s++) {
+      const up = s % 2 === 0;
+      for (let k = 0; k < H && i <= G.len; k++, i++) path.push({ c: s * 2, r: up ? H - 1 - k : k });
+      if (i <= G.len) { path.push({ c: s * 2 + 1, r: up ? 0 : H - 1 }); i++; }
+    }
+  } else {
+    const sg = cols + 1;
+    for (let i = 0; i <= G.len; i++) { const s = Math.floor(i / sg), k = i % sg, ltr = s % 2 === 0; path.push(k < cols ? { c: ltr ? k : cols - 1 - k, r: s * 2 } : { c: ltr ? cols - 1 : 0, r: s * 2 + 1 }); }
+  }
   rows = Math.max(...path.map(p => p.r)) + 1;
+  b.parentElement.className = 'slab b-' + (G.board || 'classic');
   b.style.aspectRatio = `${cols} / ${rows}`;
   const sym = { boost: '+2', slip: '−2', quiz: '?' };
   const box = (c, r) => `left:${c / cols * 100}%;top:${r / rows * 100}%;width:${100 / cols}%;height:${100 / rows}%`;
@@ -1543,20 +1775,32 @@ function buildBoard(G) {
   let h = '';
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (!used.has(c + ',' + r) && (c * 7 + r * 13) % 3 === 0) h += `<span class="glyph" style="${box(c, r)};transform:rotate(${(c * 37 + r * 17) % 40 - 20}deg)">${GL[(c * 5 + r * 3) % GL.length]}</span>`;
   h += '<div class="trk">' + path.map((p, i) => {
-    const k = i === 0 ? 'start' : i === G.len ? 'end' : G.tiles[i] || '';
-    const inner = i === 0 ? 'Go' : i === G.len ? '' : k ? `<small>${i}</small><b>${sym[k]}</b>` : i;
-    const s = Math.floor(i / sg), q = i % sg, ltr = s % 2 === 0;
+    const br = (G.bridges || []).some(x => i >= x.from && i <= x.to), sc = G.shorts && G.shorts[i];
+    const k = i === 0 ? 'start' : i === G.len ? 'end' : br ? 'bridge' : sc ? 'short' : G.tiles[i] || '';
+    const inner = i === 0 ? 'Go' : i === G.len ? '' : k === 'short' ? `<small>${i}</small>${ARROW}` : k && k !== 'bridge' ? `<small>${i}</small><b>${sym[k]}</b>` : i;
+    const nb = [path[i - 1], path[i + 1]].filter(Boolean), has = (dc, dr) => nb.some(n => n.c === p.c + dc && n.r === p.r + dr);
+    const L = has(-1, 0), Rt = has(1, 0), U = has(0, -1), D = has(0, 1);
     let cn = '';
-    if (q === cols - 1 && i < G.len) cn += ltr ? ' c-tr' : ' c-tl';
-    if (q === 0 && s > 0) cn += ltr ? ' c-bl' : ' c-br';
-    if (i === 0) cn += ' c-tl c-bl';
-    if (i === G.len) cn += q === cols ? ' c-bl c-br' : q === 0 && s > 0 ? '' : ltr ? ' c-tr c-br' : ' c-tl c-bl';
+    if (!L && !U) cn += ' c-tl'; if (!Rt && !U) cn += ' c-tr'; if (!L && !D) cn += ' c-bl'; if (!Rt && !D) cn += ' c-br';
     return `<div class="tile${k ? ' t-' + k : ''}${i % 2 ? ' alt' : ''}${cn}" data-t="${i}" style="${box(p.c, p.r)}"><div class="ti">${inner}</div></div>`;
   }).join('') + '</div>';
+  const ctr = i => [path[i].c + 0.5, path[i].r + 0.5];
+  h += `<svg class="links" viewBox="0 0 ${cols} ${rows}" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff" stroke="#161b3a" stroke-width="1.5"/></marker></defs>` + Object.keys(G.shorts || {}).map(f => {
+    const [x1, y1] = ctr(+f), [x2, y2] = ctr(G.shorts[f]), mx = (x1 + x2) / 2, my = (y1 + y2) / 2, dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, bend = Math.min(1.4, 0.35 * L);
+    const cx = mx - dy / L * bend, cy = my + dx / L * bend, LC = L * 1.12, t0 = Math.min(0.3, 0.42 / LC), t1 = Math.max(0.7, 1 - 0.5 / LC);
+    const B = t => [(1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2, (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2];
+    const [ax, ay] = B(t0), [bx, by] = B(t1), qx = (1 - t0) * ((1 - t1) * x1 + t1 * cx) + t0 * ((1 - t1) * cx + t1 * x2), qy = (1 - t0) * ((1 - t1) * y1 + t1 * cy) + t0 * ((1 - t1) * cy + t1 * y2);
+    const n2 = n => n.toFixed(2), d = `M${n2(ax)} ${n2(ay)}Q${n2(qx)} ${n2(qy)} ${n2(bx)} ${n2(by)}`;
+    return `<path d="${d}" fill="none" stroke="#161b3a" stroke-width=".26" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width=".13" stroke-dasharray=".28 .2" stroke-linecap="round" marker-end="url(#ah)"/>`;
+  }).join('') + '</svg>';
   if (G.mode === 'coop') h += `<div class="tok er" id="tok-er" title="The Eraser"><span class="tb">${ART('eraser')}</span></div>`;
   h += G.racers.map(r => `<div class="tok" id="tok-${r.id}" style="--h:${CH[r.charId].hue}" title="${esc(r.name)}"><span class="tb">${ART(r.charId)}</span></div>`).join('');
   b.innerHTML = h;
+  renderBridges(G);
   place();
+}
+function renderBridges(G) {
+  (G.bridges || []).forEach(x => { for (let i = x.from; i <= x.to; i++) { const t = $(`#board .tile[data-t="${i}"]`); if (!t) continue; t.classList.toggle('t-broken', !!x.broken); t.classList.remove('hp1', 'hp2', 'hp3'); if (!x.broken) t.classList.add('hp' + x.hp); } });
 }
 function place() {
   const G = cur; if (!G) return;
@@ -1581,7 +1825,7 @@ function drawStandings(G) {
   const rs = G.racers.slice().sort((a, b) => (view[b.id] - view[a.id]) || G.order.indexOf(a.id) - G.order.indexOf(b.id));
   $('#standings').innerHTML = rs.map((r, i) => {
     const C = CH[r.charId];
-    return `<li class="${r === curR ? 'cur' : ''}"><span class="pl">${i + 1}</span>${stk(C, 40)}<span class="sn"><b>${esc(r.name)}</b><span class="bar"><i style="--h:${C.hue};width:${Math.min(100, view[r.id] / G.len * 100)}%"></i></span></span><span class="sp">${r.finished ? 'Finished' : view[r.id] ? 'Space ' + view[r.id] : 'Start'}<small>${r.correct} of ${r.asked} right</small></span></li>`;
+    return `<li class="${r === curR ? 'cur' : ''}"><span class="pl">${i + 1}</span>${stk(C, 40)}<span class="sn"><b>${esc(r.name)}${(r.cards || []).map(k => `<i class="mini" title="${CARDS[k].name}">${CARD_ICON(k)}</i>`).join('')}</b><span class="bar"><i style="--h:${C.hue};width:${Math.min(100, view[r.id] / G.len * 100)}%"></i></span></span><span class="sp">${r.finished ? 'Finished' : view[r.id] ? 'Space ' + view[r.id] : 'Start'}<small>${r.correct} of ${r.asked} right · Level ${r.level}</small></span></li>`;
   }).join('');
   let s = `<span class="rd">Round ${G.round}</span><span>${G.mode === 'coop' ? 'Team up' : 'First to space ' + G.len + ' wins'}</span>`;
   if (G.mode === 'coop') {
@@ -1592,11 +1836,12 @@ function drawStandings(G) {
 }
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 const face = v => v >= 1 && v <= 6 ? PIPS[v].map(p => `<i style="grid-area:${Math.floor(p / 3) + 1}/${p % 3 + 1}"></i>`).join('') : `<b>${v || '?'}</b>`;
-const stats = G => ({ round: G.round, chalk: G.chalk, er: G.eraser, fo: G.finishOrder, res: G.result, rs: G.racers.map(r => [r.pos, r.correct, r.asked, r.finished ? 1 : 0]) });
+const stats = G => ({ round: G.round, chalk: G.chalk, er: G.eraser, fo: G.finishOrder, res: G.result, rs: G.racers.map(r => [r.pos, r.correct, r.asked, r.finished ? 1 : 0, (r.cards || []).join(','), r.level]), br: G.bridges });
 function applyStats(G, st) {
   if (!st || !isClient()) return;
   G.round = st.round; G.chalk = st.chalk; G.eraser = st.er; G.finishOrder = st.fo || []; G.result = st.res || null;
-  (st.rs || []).forEach((a, i) => { const r = G.racers[i]; if (r) { r.pos = a[0]; r.correct = a[1]; r.asked = a[2]; r.finished = !!a[3]; view[r.id] = r.pos; } });
+  (st.rs || []).forEach((a, i) => { const r = G.racers[i]; if (r) { r.pos = a[0]; r.correct = a[1]; r.asked = a[2]; r.finished = !!a[3]; r.cards = a[4] ? String(a[4]).split(',') : []; if (a[5]) r.level = a[5]; view[r.id] = r.pos; } });
+  if (st.br) { G.bridges = st.br; renderBridges(G); }
   viewEr = G.eraser; place();
 }
 function actArea(r, label, kind) {
@@ -1621,10 +1866,10 @@ function act(kind, v) {
   if (isClient()) net.req('PUT', 'in/' + net.pid, JSON.stringify({ for: p.seq, k: kind, rid: p.rid, v })).catch(() => { cue = p; c.querySelectorAll('[data-act]').forEach(b => { b.hidden = false; b.disabled = false; }); });
   else if (pending && pending.kind === kind && pending.rid === p.rid) { const f = pending.resolve; pending = null; f(v); }
 }
-async function moment(G, r, title, sub) {
+async function moment(G, r, title, sub, card) {
   const C = CH[r.charId], m = $('#moment');
   m.className = 'moment';
-  m.innerHTML = `<div class="mcard" style="--h:${C.hue}"><div class="mtop"><i class="mrays"></i>${ART(C.id)}</div><p class="mwho">${esc(r.name)}’s ${C.name}</p><h2>${esc(title)}</h2>${sub ? `<p class="msub">${esc(sub)}</p>` : ''}</div>`;
+  m.innerHTML = `<div class="mcard${card ? ' cardm' : ''}" style="--h:${card ? CARD_HUE[card] : C.hue}"><div class="mtop"><i class="mrays"></i>${card ? CARD_ICON(card) : ART(C.id)}</div><p class="mwho">${esc(r.name)}’s ${C.name}</p><h2>${esc(title)}</h2>${sub ? `<p class="msub">${esc(sub)}</p>` : ''}</div>`;
   m.hidden = false; sfx.slam();
   const slab = $('.slab'); if (slab && !reduced) { slab.classList.remove('shake'); void slab.offsetWidth; slab.classList.add('shake'); }
   try { await sleep(G, 1300); m.classList.add('out'); await sleep(G, 200); } finally { m.hidden = true; }
@@ -1645,6 +1890,34 @@ function sparkle(el, n = 12) {
   }
 }
 
+const ARROW = '<svg class="arw" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18C6 10 11 7 18 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><path d="M14 3l5 4l-5 4" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const BOARD_HINT = {
+  classic: 'The original track: boost, slip and pop quiz spaces.',
+  river: 'Two shortcuts and two rickety bridges that collapse after three landings.',
+  mountain: 'A climb with three shortcuts, a bridge and extra slip spaces.',
+};
+const CARD_HUE = { shield: 215, double: 45, swap: 265, rewind: 335 };
+function CARD_ICON(k) {
+  const K = '#161b3a', w = 'stroke="' + K + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+  const body = {
+    shield: `<path d="M20 4L33 9v10c0 9-6 14-13 17C13 33 7 28 7 19V9z" fill="#4b90f5" ${w}/><path d="M20 9v22c5-2 9-6 9-12v-7z" fill="#9cc4ff"/><path d="M20 4L33 9v10c0 9-6 14-13 17C13 33 7 28 7 19V9z" fill="none" ${w}/>`,
+    double: `<rect x="5" y="7" width="30" height="26" rx="7" fill="#ffc928" ${w}/><text x="20" y="27" text-anchor="middle" font-size="15" font-family="'Bagel Fat One','Arial Black',sans-serif" fill="${K}">×2</text>`,
+    swap: `<circle cx="20" cy="20" r="16" fill="#b9a4ff" ${w}/><path d="M11 16h17M23 11l5 5l-5 5M29 25H12M17 20l-5 5l5 5" fill="none" ${w}/>`,
+    rewind: `<g transform="rotate(-12 20 20)"><rect x="6" y="11" width="28" height="18" rx="5" fill="#ff8fb1" ${w}/><path d="M6 16a5 5 0 0 1 5-5h6v18h-6a5 5 0 0 1-5-5z" fill="#5aa0f2" ${w}/></g><path d="M31 6l-6 4l6 4" fill="none" ${w}/>`,
+  }[k] || '';
+  return `<svg class="cicon" viewBox="0 0 40 40" aria-hidden="true">${body}</svg>`;
+}
+function cardRow(G, r) {
+  if (!(r.cards || []).length) return '';
+  const mine = canAct(r);
+  return `<div class="cardrow">${r.cards.map(k => {
+    const D = CARDS[k], ok = k !== 'shield' && cardPlayable(G, r, k);
+    if (mine && ok) return `<button class="icard" data-act="go" data-card="${k}">${CARD_ICON(k)}<span><b>Play ${D.name}</b><small>${D.text} Then your question appears.</small></span></button>`;
+    const why = k === 'shield' ? 'Protects you automatically.' : k === 'swap' ? 'Nobody is ahead to swap with yet.' : k === 'rewind' ? 'The Eraser hasn’t started yet.' : D.text;
+    return `<div class="icard${k === 'shield' ? '' : ' off'}">${CARD_ICON(k)}<span><b>${D.name}</b><small>${why}</small></span></div>`;
+  }).join('')}</div>`;
+}
+
 /* V draws one event. The host and every joined device run the same drawing code. */
 const V = {
   async turn(G, e) {
@@ -1657,16 +1930,16 @@ const V = {
     const you = isClient() && r.owner === net.pid;
     $('#turncard').innerHTML = `<div class="who" style="--h:${C.hue}">${stk(C, 78)}<div><h2>${you ? 'Your turn' : esc(r.name) + (e.depth ? ' goes again' : '’s turn')}</h2><p>${you ? esc(r.name) + ', ' : ''}${C.name}</p></div></div>
       <div class="tcbody">${e.helper ? `<div class="pwt">${esc(r.name)} has finished the race. This roll goes to the teammate at the back.</div>` : `<div class="pwt"><span class="ptag">Power</span><strong>${C.power}</strong>${C.text}</div>`}
-      <div class="act">${actArea(r, 'Show my question', 'go')}</div>${skipBtn(r)}</div>`;
-    if (canAct(r)) { focusOn('#turncard'); const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
+      ${e.helper ? '' : cardRow(G, r)}<div class="act">${actArea(r, 'Show my question', 'go')}</div>${skipBtn(r)}</div>`;
+    if (canAct(r)) { focusOn('#turncard'); const b = $('#turncard .act [data-act]'); if (b) b.focus({ preventScroll: true }); }
   },
   async ask(G, e) {
     guard(G);
     const r = G.racers[e.rid], C = CH[r.charId], card = $('#turncard'), q = e.q, plain = q.html.replace(/<[^>]+>/g, ''), mine = canAct(r);
-    const tag = e.quiz ? 'Pop quiz' : e.harder ? 'Harder question' : '';
-    card.innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b>${tag ? `<span class="tag">${tag}</span>` : ''}</div></div>
+    const tag = e.shortcut ? 'Shortcut question' : e.quiz ? 'Pop quiz' : e.harder ? 'Harder question' : '';
+    card.innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b>${tag ? `<span class="tag">${tag}</span>` : ''}${e.level ? `<span class="tag lv">Level ${e.level}</span>` : ''}</div></div>
       <div class="tcbody"><div class="qbox">${e.timer ? `<div class="timer"><i style="animation-duration:${e.timer}s"></i></div>` : ''}<div class="q${plain.length > 16 ? ' long' : ''}">${q.html}</div></div>
-      <div class="ans">${q.choices.map((ch, i) => `<button data-act="ans" data-v="${i}"${mine ? '' : ' disabled'}><kbd>${i + 1}</kbd>${ch}</button>`).join('')}</div>
+      <div class="ans${q.choices.some(c => c.replace(/<[^>]+>/g, '').length > 13) ? ' xlong' : q.choices.some(c => c.replace(/<[^>]+>/g, '').length > 7) ? ' long' : ''}">${q.choices.map((ch, i) => `<button data-act="ans" data-v="${i}"${mine ? '' : ' disabled'}><kbd>${i + 1}</kbd>${ch}</button>`).join('')}</div>
       <p class="fb" id="fb" aria-live="polite">${mine || r.bot ? '' : `<span class="think" data-wait>${esc(r.name)} is answering…</span>`}</p>${skipBtn(r)}</div>`;
     cue = { seq: e.s, rid: r.id, kind: 'ans', t0: performance.now() };
     clearTimeout(qTimer);
@@ -1754,6 +2027,30 @@ const V = {
     await moment(G, r, e.name);
   },
   async say(G, e) { guard(G); tick(e.text, e.tone); await sleep(G, 550); },
+  async fork(G, e) {
+    guard(G);
+    const r = G.racers[e.rid], C = CH[r.charId], mine = canAct(r);
+    cue = { seq: e.s, rid: r.id, kind: 'fork', t0: performance.now() };
+    $('#turncard').innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b></div></div>
+      <div class="tcbody"><div class="pwt"><span class="ptag">Shortcut</span><strong>Jump to space ${e.to}?</strong>Answer a harder question. Get it right and you jump ${e.to - r.pos} spaces ahead. Miss it and you slide back 2.</div>
+      <div class="act forkbtns">${mine ? '<button class="btn big" data-act="fork" data-v="1">Take the shortcut</button><button class="btn ghost" data-act="fork" data-v="0">Stay on the track</button>' : `<p class="think" data-wait>${esc(r.name)} is deciding…</p>`}</div>${skipBtn(r)}</div>`;
+    if (mine) { focusOn('#turncard'); const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
+  },
+  async card(G, e) {
+    guard(G);
+    const r = G.racers[e.rid]; r.cards = e.cards || [];
+    tick(e.text, e.verb === 'got' ? 'good' : 'pow');
+    drawStandings(G);
+    const D = CARDS[e.k];
+    await moment(G, r, e.verb === 'got' ? `${D.name} card` : e.k === 'shield' ? 'Shield up!' : D.name + '!', e.verb === 'got' ? 'Saved for later' : '', e.k);
+  },
+  async bridge(G, e) {
+    guard(G);
+    if (isClient()) G.bridges = e.br; renderBridges(G);
+    tick(e.text, e.tone);
+    if (e.tone === 'bad') { sfx.slam(); const slab = $('.slab'); if (slab && !reduced) { slab.classList.remove('shake'); void slab.offsetWidth; slab.classList.add('shake'); } await sleep(G, 900); }
+    else { tone(140, 0.25, 'sawtooth', 0, 0.05); tone(110, 0.3, 'sawtooth', 0.12, 0.04); await sleep(G, 650); }
+  },
   async eraser(G, e) {
     guard(G); tick(e.text, e.to > e.from ? 'bad' : 'good');
     if (isClient()) { G.eraser = e.to; G.chalk = e.chalk; }
@@ -1775,10 +2072,14 @@ const ui = {
   async turn(G, r, c) {
     const e = emit(G, { t: 'turn', rid: r.id, depth: c.depth, helper: c.helper, st: stats(G) });
     await V.turn(G, e);
-    if (r.bot) await sleep(G, 800); else await waitFor(G, r, 'go', e);
+    if (r.bot) { await sleep(G, 800); return null; }
+    return waitFor(G, r, 'go', e);
   },
+  async fork(G, r, to) { const e = emit(G, { t: 'fork', rid: r.id, to }); await V.fork(G, e); return !!(await waitFor(G, r, 'fork', e)); },
+  card(G, r, k, verb, text) { return V.card(G, emit(G, { t: 'card', rid: r.id, k, verb, text, cards: (r.cards || []).slice() })); },
+  bridge(G, text, tone) { return V.bridge(G, emit(G, { t: 'bridge', text, tone, br: G.bridges })); },
   async ask(G, r, q, meta) {
-    const e = emit(G, { t: 'ask', rid: r.id, q: { html: q.html, choices: q.choices }, quiz: !!meta.quiz, harder: !!meta.harder, timer: G.timer > 0 && !r.bot ? G.timer : 0 });
+    const e = emit(G, { t: 'ask', rid: r.id, q: { html: q.html, choices: q.choices }, quiz: !!meta.quiz, harder: !!meta.harder, shortcut: !!meta.shortcut, level: meta.level || 0, timer: G.timer > 0 && !r.bot ? G.timer : 0 });
     await V.ask(G, e);
     let a;
     if (r.bot) { await sleep(G, 1000 + rnd(700)); a = { choice: Math.random() < BOT_P ? q.correct : pick([0, 1, 2, 3].filter(i => i !== q.correct)), ms: 2500 + rnd(6000) }; }
