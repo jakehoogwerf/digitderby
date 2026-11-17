@@ -9,9 +9,9 @@ window.DIGIT_DERBY_CONFIG = {
   // Option A: Supabase. Paste your project URL and its public key
   // (the "anon" key or a "publishable" key that starts with sb_publishable_).
   // Never paste the service_role or secret key here.
-  supabaseUrl: "",
-  supabaseKey: "",
+  supabaseUrl: "db.awxmgiindzlwtgoxtxdt.supabase.co",
+  supabaseKey: "sb_publishable_9YTsc1bf-_IZKj-KdmQVfg_uOhr997p",
 
   // Option B: Firebase. Paste your Realtime Database address.
-  databaseURL: "db.awxmgiindzlwtgoxtxdt.supabase.co"
+  databaseURL: ""
 };
