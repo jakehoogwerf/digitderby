@@ -8,5 +8,5 @@
 // Leave it empty and the game still works, with everyone sharing one screen.
 
 window.DIGIT_DERBY_CONFIG = {
-  databaseURL: ""
+  databaseURL: "databaseURL: "https://your-project-default-rtdb.firebaseio.com""
 };
