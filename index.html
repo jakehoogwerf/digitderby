@@ -460,6 +460,11 @@ button.icard:active{transform:translateY(4px);box-shadow:none}
 .tag.lv{background:var(--purple)}
 .forkbtns{flex-direction:column;gap:12px}
 label.adapt{margin-top:10px}
+.netdiag{margin-top:36px;border-color:var(--line);background:var(--yellow);color:#161b3a}
+.netdiag h2{font-size:1.4rem;margin-bottom:6px}
+.netdiag p{margin-top:6px;max-width:60ch}
+.netdiag code{background:rgba(255,255,255,.65);border-radius:6px;padding:0 .3em;font-size:.92em}
+.netdiag .sub{color:#3a3f60}
 
 </style>
 </head>
@@ -489,6 +494,8 @@ label.adapt{margin-top:10px}
       </div>
 
       <div id="resume"></div>
+
+      <div class="panel netdiag" id="netdiag" hidden></div>
 
       <div class="panel joinbox" id="joinbox" hidden>
         <div class="jtext"><h2>Got an invite code?</h2><p class="sub">Join a race that someone else has set up.</p></div>
@@ -612,6 +619,7 @@ label.adapt{margin-top:10px}
   </div>
 </dialog>
 
+<script>window.DD_EXPECT_CONFIG = true;</script>
 <script src="config.js"></script>
 <script>
 /* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
@@ -1406,15 +1414,89 @@ const nameOf = i => (S.racers[i].name || '').trim() || `Racer ${i + 1}`;
 
 /* ---------- online play (only when config.js gives a database address) ---------- */
 const CFG = window.DIGIT_DERBY_CONFIG || {};
+/* Two ways to connect devices: Supabase Realtime (broadcast channels, no tables) or a Firebase Realtime Database. */
+const SB_URL = String(CFG.supabaseUrl || '').trim().replace(/\/+$/, ''), SB_KEY = String(CFG.supabaseKey || '').trim();
 const DB = String(CFG.databaseURL || '').trim().replace(/\/+$/, '');
-const ONLINE = /^https?:\/\/.+/.test(DB) && !!window.EventSource && !!window.fetch;
+const USE_SB = /^https:\/\/.+/.test(SB_URL) && SB_KEY.length > 20 && !!window.WebSocket;
+const USE_FB = !USE_SB && /^https?:\/\/.+/.test(DB) && !!window.EventSource && !!window.fetch;
+const ONLINE = USE_SB || USE_FB;
 const setKey = (o, k, v) => { if (v === null || v === undefined) delete o[k]; else o[k] = v; };
+const getAt = (tree, p) => { let o = tree; for (const s of String(p || '').split('/').filter(Boolean)) { if (!o || typeof o !== 'object') return null; o = o[s]; } return o === undefined ? null : o; };
+
+/* Supabase: load the library only when it's configured, then keep one channel per room. */
+let sbClientP = null;
+function sbClient() {
+  if (!sbClientP) sbClientP = new Promise((res, rej) => {
+    const make = () => { try { res(window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false }, realtime: { params: { eventsPerSecond: 40 } } })); } catch (e) { rej(e); } };
+    if (window.supabase && window.supabase.createClient) return make();
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js';
+    sc.onload = make; sc.onerror = () => rej(new Error('The Supabase library didn’t load.'));
+    document.head.appendChild(sc);
+  }).catch(e => { sbClientP = null; throw e; });
+  return sbClientP;
+}
+const SBC = {
+  chans: {},
+  async get(code) {
+    let o = this.chans[code];
+    if (!o) {
+      const client = await sbClient();
+      o = this.chans[code];
+      if (!o) {
+        const ch = client.channel('digit-derby-' + code, { config: { broadcast: { self: false, ack: true } } });
+        o = this.chans[code] = { ch, subs: new Set() };
+        ch.on('broadcast', { event: 'm' }, msg => o.subs.forEach(f => { try { f(msg && msg.payload); } catch (e) { console.error(e); } }));
+        o.ready = new Promise((res, rej) => {
+          let first = true;
+          const to = setTimeout(() => { if (first) { first = false; rej(new Error('timed out')); } }, 12000);
+          ch.subscribe(st => {
+            if (st === 'SUBSCRIBED') { if (first) { first = false; clearTimeout(to); res(); } else o.subs.forEach(f => f({ k: 'rejoined' })); }
+            else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT' || st === 'CLOSED') { if (first) { first = false; clearTimeout(to); rej(new Error(st)); } else o.subs.forEach(f => f({ k: 'lost' })); }
+          });
+        });
+        o.ready.catch(() => { if (this.chans[code] === o) { delete this.chans[code]; client.removeChannel(o.ch); } });
+      }
+    }
+    await o.ready; return o;
+  },
+  async send(code, payload) {
+    const o = await this.get(code);
+    const r = await o.ch.send({ type: 'broadcast', event: 'm', payload });
+    if (r !== 'ok') throw new Error('Supabase didn’t accept the message (' + r + ').');
+  },
+  /* Ask whoever is hosting a room for its full state. No answer means no room. */
+  async fetch(code, wait) {
+    const o = await this.get(code), id = Math.random().toString(36).slice(2);
+    const tree = await new Promise(res => {
+      const f = m => { if (m && m.k === 'full' && m.id === id) { o.subs.delete(f); clearTimeout(t); res(m.tree || null); } };
+      o.subs.add(f);
+      const t = setTimeout(() => { o.subs.delete(f); res(null); }, wait || 3500);
+      this.send(code, { k: 'sync', id }).catch(() => {});
+    });
+    this.drop(code, 20000);
+    return tree;
+  },
+  drop(code, delay) {
+    const o = this.chans[code]; if (!o) return;
+    setTimeout(async () => { if (this.chans[code] === o && !o.subs.size) { delete this.chans[code]; try { (await sbClient()).removeChannel(o.ch); } catch (e) { /* gone */ } } }, delay || 0);
+  },
+};
+
 const net = {
-  code: null, role: null, es: null, room: {}, out: [], pumping: false,
+  code: null, role: null, es: null, room: {}, out: [], pumping: false, synced: false, onChange: null, sbH: null, syncT: 0, saveT: 0,
   pid: (() => { let p = store.get('dd.pid'); if (!p) { p = 'p' + Math.random().toString(36).slice(2, 10); store.set('dd.pid', p); } return p; })(),
   url(code, p) { return `${DB}/rooms/${code}${p ? '/' + p : ''}.json`; },
   async req(method, p, body, code) {
-    const r = await fetch(this.url(code || this.code, p), { method, body: body === undefined ? undefined : JSON.stringify(body) });
+    code = code || this.code;
+    if (USE_SB) {
+      if (method === 'GET') return getAt(code === this.code && this.synced ? this.room : await SBC.fetch(code), p);
+      const op = { k: 'op', m: method, p: p || '', b: body === undefined ? null : body };
+      if (code === this.code) this.applyOp(op);
+      await SBC.send(code, op);
+      return body === undefined ? null : body;
+    }
+    const r = await fetch(this.url(code, p), { method, body: body === undefined ? undefined : JSON.stringify(body) });
     if (!r.ok) throw new Error('The game server said no (' + r.status + ').');
     return r.json();
   },
@@ -1426,8 +1508,37 @@ const net = {
     const last = segs[segs.length - 1];
     if (merge) { if (!o[last] || typeof o[last] !== 'object') o[last] = {}; for (const k in data) setKey(o[last], k, data[k]); } else setKey(o, last, data);
   },
+  applyOp(op) {
+    const path = '/' + String(op.p || '');
+    if (op.m === 'PATCH') this.apply(path, op.b || {}, true); else this.apply(path, op.m === 'DELETE' ? null : op.b, false);
+    if (this.role === 'host') this.saveRoom();
+    pill();
+    try { if (this.onChange) this.onChange(path === '/' ? '/' : path.replace(/\/$/, '')); } catch (e) { console.error(e); }
+  },
+  saveRoom() { clearTimeout(this.saveT); const code = this.code; this.saveT = setTimeout(() => { if (this.code === code && this.role === 'host') store.set('dd.room', { code, tree: this.room }); }, 600); },
+  requestSync() {
+    const code = this.code; if (!code || this.role !== 'client') return;
+    this.syncId = Math.random().toString(36).slice(2);
+    SBC.send(code, { k: 'sync', id: this.syncId }).catch(() => {});
+    clearTimeout(this.syncT);
+    this.syncT = setTimeout(() => { if (this.code === code && !this.synced) { pill('Reconnecting…'); this.requestSync(); } }, 4000);
+  },
   open(code, role, onChange) {
-    this.close(); this.code = code; this.role = role; this.room = {};
+    this.close(); this.code = code; this.role = role; this.room = {}; this.onChange = onChange;
+    if (USE_SB) {
+      const saved = store.get('dd.room');
+      if (role === 'host') { this.room = saved && saved.code === code && saved.tree ? saved.tree : {}; this.synced = true; }
+      const h = this.sbH = m => {
+        if (!m || this.code !== code || this.sbH !== h) return;
+        if (m.k === 'op') { if (this.synced) this.applyOp(m); }
+        else if (m.k === 'sync') { if (this.role === 'host') SBC.send(code, { k: 'full', id: m.id, tree: this.room }).catch(() => {}); }
+        else if (m.k === 'full') { if (this.role === 'client' && m.id === this.syncId) { clearTimeout(this.syncT); this.room = m.tree || {}; this.synced = true; pill(); try { onChange('/'); } catch (e) { console.error(e); } } }
+        else if (m.k === 'rejoined') { pill(); if (this.role === 'client') { this.synced = false; this.requestSync(); } }
+        else if (m.k === 'lost') pill('Reconnecting…');
+      };
+      SBC.get(code).then(o => { if (this.sbH !== h) return; o.subs.add(h); pill(); if (role === 'client') this.requestSync(); }).catch(() => pill('Reconnecting…'));
+      pill(); return;
+    }
     const es = this.es = new EventSource(this.url(code, ''));
     const h = merge => ev => {
       if (this.es !== es) return;
@@ -1440,7 +1551,12 @@ const net = {
     es.onopen = () => pill(); es.onerror = () => pill('Reconnecting…');
     pill();
   },
-  close() { if (this.es) this.es.close(); this.es = null; this.code = null; this.role = null; this.room = {}; this.out = []; pill(); },
+  close() {
+    if (this.es) this.es.close();
+    if (this.sbH && this.code) { const o = SBC.chans[this.code]; if (o) o.subs.delete(this.sbH); SBC.drop(this.code, 3000); }
+    clearTimeout(this.syncT);
+    this.es = null; this.sbH = null; this.code = null; this.role = null; this.room = {}; this.out = []; this.synced = false; this.onChange = null; pill();
+  },
   queue(method, p, body, ev) { if (!this.code) return; this.out.push({ method, p, body, ev, code: this.code }); this.pump(); },
   async pump() {
     if (this.pumping) return; this.pumping = true;
@@ -1476,7 +1592,8 @@ function publishMeta(phase) {
   clearTimeout(H.metaT);
   H.metaT = setTimeout(() => net.queue('PATCH', 'meta', { phase: phase || (cur ? 'race' : 'lobby'), mode: S.mode, locals: JSON.stringify(S.racers.map((p, i) => ({ name: nameOf(i), charId: p.charId }))) }), phase ? 0 : 250);
 }
-function onRoomHost() {
+function onRoomHost(path) {
+  if (/^\/(meta|ev|snap)/.test(path || '')) return;
   const taken = new Set(S.racers.map(p => p.charId)), room = MAXR - S.racers.length;
   remotes().forEach((p, i) => {
     if (cur) return;
@@ -1495,13 +1612,14 @@ async function openRoom() {
   try {
     const old = store.get('dd.host'); if (old && old.code) { try { await net.req('DELETE', '', undefined, old.code); } catch (e) { /* already gone */ } }
     let code = '';
-    for (let i = 0; i < 6; i++) { code = Array.from({ length: 4 }, () => pick('BCDFGHJKLMNPQRSTVWXZ'.split(''))).join(''); if (!(await net.req('GET', 'meta', undefined, code))) break; }
+    for (let i = 0; i < (USE_SB ? 2 : 6); i++) { code = Array.from({ length: 4 }, () => pick('BCDFGHJKLMNPQRSTVWXZ'.split(''))).join(''); if (!(await net.req('GET', 'meta', undefined, code))) break; }
+    store.del('dd.room');
     net.open(code, 'host', onRoomHost); store.set('dd.host', { code, t: Date.now() });
     publishMeta('lobby');
-  } catch (e) { $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. Check the address in config.js and your connection, then reload.</p>`; return; }
+  } catch (e) { console.error(e); $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. ${USE_SB ? 'Check the Supabase URL and key in config.js' : 'Check the address in config.js'} and your connection, then reload.</p><button class="btn ghost sm" id="openroom">Try again</button>`; $('#openroom').onclick = openRoom; return; }
   renderRacers();
 }
-function closeRoom() { if (!hosting()) return; const code = net.code; net.req('DELETE', '', undefined, code).catch(() => {}); net.close(); store.del('dd.host'); renderRacers(); }
+function closeRoom() { if (!hosting()) return; const code = net.code; net.req('DELETE', '', undefined, code).catch(() => {}); net.close(); store.del('dd.host'); store.del('dd.room'); renderRacers(); }
 function renderInvite() {
   const box = $('#invite'); box.hidden = !ONLINE; if (!ONLINE) return;
   if (!hosting()) { box.innerHTML = `<button class="btn" id="openroom">Let others join from their own devices</button><p class="sub">You’ll get an invite code to share. This device runs the race, so keep it open.</p>`; $('#openroom').onclick = openRoom; return; }
@@ -1651,6 +1769,17 @@ function wireHome() {
   });
   document.addEventListener('keydown', e => { const n = +e.key; if (cue && cue.kind === 'ans' && n >= 1 && n <= 4 && !e.ctrlKey && !e.metaKey && !e.altKey && !/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) act('ans', { choice: n - 1, ms: performance.now() - cue.t0 }); });
   $('#joinbox').hidden = !ONLINE;
+  if (window.DD_EXPECT_CONFIG && !ONLINE) {
+    const raw = window.DIGIT_DERBY_CONFIG, sbu = raw && String(raw.supabaseUrl || '').trim(), sbk = raw && String(raw.supabaseKey || '').trim(), url = raw && (sbu || sbk ? sbu : String(raw.databaseURL || '').trim());
+    const why = !raw ? 'The file <code>config.js</code> didn’t load. Check it’s uploaded next to <code>index.html</code> (not inside a folder), that its name is exactly <code>config.js</code>, and that its text still starts with <code>window.DIGIT_DERBY_CONFIG = {</code>. A stray character can stop it loading, and so can curly quotes (“ ”) instead of straight ones (" "), which some apps add when you paste.'
+      : (sbu || sbk) && !sbu ? '<code>config.js</code> has a Supabase key but no <code>supabaseUrl</code>. Paste your project URL (like <code>https://abcd.supabase.co</code>) between its quotes.'
+      : (sbu || sbk) && sbk.length <= 20 ? '<code>config.js</code> has a Supabase URL, but <code>supabaseKey</code> is empty or too short. Paste the full public key (anon or publishable) between its quotes.'
+      : !url ? '<code>config.js</code> loaded, but no connection details are filled in. Paste your Supabase URL and key (or a Firebase address) between the quotes and commit.'
+      : !/^https?:\/\//.test(url) ? `<code>config.js</code> has <code>${esc(url)}</code>, which doesn’t start with <code>https://</code>. Copy the full address, including <code>https://</code>.`
+      : 'This browser can’t do online play. Try Chrome, Edge, Safari or Firefox.';
+    $('#netdiag').hidden = false;
+    $('#netdiag').innerHTML = `<h2>Online play is off</h2><p>${why}</p><p class="sub">After changing anything on GitHub, wait a couple of minutes, then reload with Ctrl+Shift+R (Cmd+Shift+R on a Mac).</p>`;
+  }
   if (ONLINE) {
     const q = new URLSearchParams(location.search).get('room'); if (q) $('#jcode').value = q.toUpperCase().slice(0, 4);
     $('#jname').value = store.get('dd.name') || '';
@@ -1696,8 +1825,10 @@ async function joinRoom(code, name) {
   finally { $('#jgo').disabled = false; }
 }
 function leaveRoom(msg) {
-  if (isClient()) net.req('DELETE', 'players/' + net.pid).catch(() => {});
-  net.close(); store.del('dd.join'); CL.gen++; goHome(); jerr(msg || '');
+  const code = isClient() ? net.code : null;
+  net.close();
+  if (code) net.req('DELETE', 'players/' + net.pid, undefined, code).catch(() => {});
+  store.del('dd.join'); CL.gen++; goHome(); jerr(msg || '');
 }
 function onRoomClient(path) {
   const room = net.room;
@@ -2168,7 +2299,9 @@ function showFinish(G) {
 wireHome(); goHome();
 if (ONLINE) {
   const h = store.get('dd.host');
-  if (h && h.code && Date.now() - h.t < 6 * 3600e3) net.req('GET', 'meta', undefined, h.code).then(m => { if (m && !net.code) { net.open(h.code, 'host', onRoomHost); const g = store.get('dd.game'); if (!(g && g.room === h.code && !g.over)) publishMeta('lobby'); renderRacers(); } else if (!m) store.del('dd.host'); }).catch(() => {});
+  const sv = store.get('dd.room');
+  if (USE_SB && h && h.code && Date.now() - h.t < 6 * 3600e3 && sv && sv.code === h.code) { net.open(h.code, 'host', onRoomHost); const g = store.get('dd.game'); if (!(g && g.room === h.code && !g.over)) publishMeta('lobby'); renderRacers(); }
+  else if (!USE_SB && h && h.code && Date.now() - h.t < 6 * 3600e3) net.req('GET', 'meta', undefined, h.code).then(m => { if (m && !net.code) { net.open(h.code, 'host', onRoomHost); const g = store.get('dd.game'); if (!(g && g.room === h.code && !g.over)) publishMeta('lobby'); renderRacers(); } else if (!m) store.del('dd.host'); }).catch(() => {});
 }
 if (window.ResizeObserver) new ResizeObserver(() => { if (!cur) return; if (colsFor() !== cols) buildBoard(cur); else place(); }).observe($('#race'));
 window.addEventListener('resize', () => { if (cur) place(); });
