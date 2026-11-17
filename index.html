@@ -1419,7 +1419,12 @@ const CFG = window.DIGIT_DERBY_CONFIG || {};
 /* Two ways to connect devices: Supabase Realtime (broadcast channels, no tables) or a Firebase Realtime Database. */
 const SB_RAW = String(CFG.supabaseUrl || '').trim(), SB_KEY = String(CFG.supabaseKey || '').trim().replace(/^['"“”]+|['"“”]+$/g, '');
 /* Keep just https://project.supabase.co, even if a longer address like .../rest/v1/ was pasted. */
-const SB_URL = (() => { try { const u = new URL(SB_RAW); return u.protocol === 'https:' ? u.origin : ''; } catch (e) { return ''; } })();
+const SB_URL = (() => {
+  let raw = SB_RAW;
+  const pg = raw.match(/@db\.([a-z0-9]+)\.supabase\.(co|in)/i); if (pg) raw = `https://${pg[1]}.supabase.${pg[2]}`;
+  if (!/^[a-z]+:\/\//i.test(raw) && /\.supabase\.(co|in)/i.test(raw)) raw = 'https://' + raw;
+  try { const u = new URL(raw); if (u.protocol !== 'https:') return ''; return 'https://' + u.host.replace(/^db\.(?=[a-z0-9]+\.supabase\.(co|in)$)/i, ''); } catch (e) { return ''; }
+})();
 const DB = String(CFG.databaseURL || '').trim().replace(/\/+$/, '');
 const USE_SB = /^https:\/\/.+/.test(SB_URL) && SB_KEY.length > 20 && !!window.WebSocket;
 const USE_FB = !USE_SB && /^https?:\/\/.+/.test(DB) && !!window.EventSource && !!window.fetch;
@@ -1516,9 +1521,11 @@ function netHint(e) {
   }[k] || 'Check the Supabase URL and key in config.js and your connection, then reload.';
   return `${tip} <span class="errdetail">(Details: ${raw})</span>`;
 }
+/* Every join gets its own player ID, so two tabs or a shared computer never become the same player. */
+function newPid() { const a = new Uint32Array(2); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : (a[0] = Math.random() * 4e9, a[1] = Math.random() * 4e9); return 'p' + a[0].toString(36) + a[1].toString(36); }
 const net = {
   code: null, role: null, es: null, room: {}, out: [], pumping: false, synced: false, onChange: null, sbH: null, syncT: 0, saveT: 0,
-  pid: (() => { let p = store.get('dd.pid'); if (!p) { p = 'p' + Math.random().toString(36).slice(2, 10); store.set('dd.pid', p); } return p; })(),
+  pid: newPid(), me: '',
   url(code, p) { return `${DB}/rooms/${code}${p ? '/' + p : ''}.json`; },
   async req(method, p, body, code) {
     code = code || this.code;
@@ -1611,7 +1618,7 @@ const net = {
 const hosting = () => net.role === 'host', isClient = () => net.role === 'client';
 function pill(msg) {
   const el = $('#netpill'); if (!el) return;
-  el.hidden = !net.code; el.textContent = msg || (net.code ? 'Room ' + net.code : ''); el.classList.toggle('warn', !!msg);
+  el.hidden = !net.code; el.textContent = msg || (net.code ? 'Room ' + net.code + (net.role === 'client' && net.me ? ' · This is ' + net.me + '’s device' : '') : ''); el.classList.toggle('warn', !!msg);
 }
 const remotes = () => Object.entries(net.room.players || {}).map(([pid, p]) => ({ pid, name: String(p.name || 'Racer').slice(0, 14), charId: p.charId, t: p.t || 0 })).sort((a, b) => a.t - b.t || (a.pid < b.pid ? -1 : 1));
 const H = { levels: {}, metaT: 0 };
@@ -1719,7 +1726,7 @@ function renderResume() {
     h += `<div class="panel"><p><b>You were in room ${esc(J.code)}.</b> Jump back in?</p><button class="btn ghost" id="rejoin">Rejoin</button><button class="btn ghost" id="forget">Forget it</button></div>`;
   box.innerHTML = h;
   if ($('#cont')) { $('#cont').onclick = () => launch(G, true); $('#toss').onclick = () => { store.del('dd.game'); publishMeta('lobby'); renderResume(); }; }
-  if ($('#rejoin')) { $('#rejoin').onclick = () => joinRoom(J.code, J.name); $('#forget').onclick = () => { store.del('dd.join'); renderResume(); }; }
+  if ($('#rejoin')) { $('#rejoin').onclick = () => joinRoom(J.code, J.name, J.pid); $('#forget').onclick = () => { store.del('dd.join'); renderResume(); }; }
 }
 function renderStrip() {
   const cs = shuffle(CHARS).slice(0, 5), spots = [1, 3, 5, 7, 9];
@@ -1793,7 +1800,6 @@ function wireHome() {
   };
   $('#brand').onclick = () => { if (!cur && !isClient()) goHome(); };
   $('#turncard').addEventListener('click', e => {
-    if (e.target.closest('[data-skip]')) { skipTurn(); return; }
     const b = e.target.closest('[data-act]'); if (!b || b.disabled || !cue) return;
     if (b.dataset.act === 'ans') act('ans', { choice: +b.dataset.v, ms: performance.now() - cue.t0 });
     else if (b.dataset.card) act('go', { card: b.dataset.card });
@@ -1837,11 +1843,12 @@ function goHome() {
 /* ---------- joining someone else's room ---------- */
 const CL = { gid: null, last: 0, q: {}, busy: false, gen: 0, screen: '' };
 function jerr(t) { $('#jerr').textContent = t || ''; }
-async function joinRoom(code, name) {
+async function joinRoom(code, name, pid) {
   code = String(code || '').toUpperCase().replace(/[^A-Z]/g, ''); name = String(name || '').trim().slice(0, 14);
   if (code.length !== 4) return jerr('Type the 4-letter invite code.');
   if (!name) return jerr('Type your name so the others know who you are.');
   jerr(''); $('#jgo').disabled = true;
+  net.pid = pid || newPid();
   try {
     const room = await net.req('GET', '', undefined, code);
     if (!room || !room.meta) { jerr('No room has that code. Check it with the person who set up the race.'); return; }
@@ -1852,9 +1859,9 @@ async function joinRoom(code, name) {
     const taken = new Set(locals.map(l => l.charId).concat(Object.values(players).map(p => p.charId)));
     if (mine) await net.req('PATCH', 'players/' + net.pid, { name }, code);
     else await net.req('PUT', 'players/' + net.pid, { name, charId: pick(CHARS.filter(c => !taken.has(c.id))).id, t: Date.now() }, code);
-    store.set('dd.name', name); store.set('dd.join', { code, name, t: Date.now() });
+    store.set('dd.name', name); store.set('dd.join', { code, name, pid: net.pid, t: Date.now() });
     cur = null; CL.gid = null; CL.last = 0; CL.q = {}; CL.gen++; CL.screen = '';
-    net.open(code, 'client', onRoomClient);
+    net.open(code, 'client', onRoomClient); net.me = name; pill();
   } catch (e) { console.error(e); $('#jerr').textContent = 'Couldn’t reach the game server. Checking why…'; $('#jerr').innerHTML = 'Couldn’t reach the game server. ' + await netExplain(e); }
   finally { $('#jgo').disabled = false; }
 }
@@ -2014,14 +2021,6 @@ function actArea(r, label, kind) {
   const mine = canAct(r);
   return `<button class="btn big" data-act="${kind}"${mine ? '' : ' hidden'}>${label}</button>` + (mine ? '' : `<p class="think" data-wait>Waiting for ${esc(r.name)}…</p>`);
 }
-const skipBtn = r => !isClient() && r.owner && !r.bot && !canAct(r) ? `<button class="btn ghost sm take" data-skip>Skip ${esc(r.name)}’s turn</button>` : '';
-/* The host can skip a player who has gone quiet. A skip counts as running out of time: no answer, main die only. It never answers for them. */
-function skipTurn() {
-  if (!cue || !cur || !pending || pending.rid !== cue.rid) return;
-  const f = pending.resolve; const kind = pending.kind; pending = null; cue = null; clearTimeout(qTimer);
-  $('#turncard').querySelectorAll('[data-act],[data-skip]').forEach(b => { b.disabled = true; });
-  f(kind === 'ans' ? { choice: -1, ms: 0 } : null);
-}
 function act(kind, v) {
   const p = cue; if (!p || p.kind !== kind || !cur) return;
   const r = cur.racers[p.rid]; if (!r || !canAct(r)) return;
@@ -2095,7 +2094,7 @@ const V = {
     const you = isClient() && r.owner === net.pid;
     $('#turncard').innerHTML = `<div class="who" style="--h:${C.hue}">${stk(C, 78)}<div><h2>${you ? 'Your turn' : esc(r.name) + (e.depth ? ' goes again' : '’s turn')}</h2><p>${you ? esc(r.name) + ', ' : ''}${C.name}</p></div></div>
       <div class="tcbody">${e.helper ? `<div class="pwt">${esc(r.name)} has finished the race. This roll goes to the teammate at the back.</div>` : `<div class="pwt"><span class="ptag">Power</span><strong>${C.power}</strong>${C.text}</div>`}
-      ${e.helper ? '' : cardRow(G, r)}<div class="act">${actArea(r, 'Show my question', 'go')}</div>${skipBtn(r)}</div>`;
+      ${e.helper ? '' : cardRow(G, r)}<div class="act">${actArea(r, 'Show my question', 'go')}</div></div>`;
     if (canAct(r)) { focusOn('#turncard'); const b = $('#turncard .act [data-act]'); if (b) b.focus({ preventScroll: true }); }
   },
   async ask(G, e) {
@@ -2105,7 +2104,7 @@ const V = {
     card.innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b>${tag ? `<span class="tag">${tag}</span>` : ''}${e.level ? `<span class="tag lv">Level ${e.level}</span>` : ''}</div></div>
       <div class="tcbody"><div class="qbox">${e.timer ? `<div class="timer"><i style="animation-duration:${e.timer}s"></i></div>` : ''}<div class="q${plain.length > 16 ? ' long' : ''}">${q.html}</div></div>
       <div class="ans${q.choices.some(c => c.replace(/<[^>]+>/g, '').length > 13) ? ' xlong' : q.choices.some(c => c.replace(/<[^>]+>/g, '').length > 7) ? ' long' : ''}">${q.choices.map((ch, i) => `<button data-act="ans" data-v="${i}"${mine ? '' : ' disabled'}><kbd>${i + 1}</kbd>${ch}</button>`).join('')}</div>
-      <p class="fb" id="fb" aria-live="polite">${mine || r.bot ? '' : `<span class="think" data-wait>${esc(r.name)} is answering…</span>`}</p>${skipBtn(r)}</div>`;
+      <p class="fb" id="fb" aria-live="polite">${mine || r.bot ? '' : `<span class="think" data-wait>${esc(r.name)} is answering…</span>`}</p></div>`;
     cue = { seq: e.s, rid: r.id, kind: 'ans', t0: performance.now() };
     clearTimeout(qTimer);
     if (mine) { focusOn('#turncard'); if (e.timer) qTimer = setTimeout(() => act('ans', { choice: -1, ms: e.timer * 1000 }), e.timer * 1000); }
@@ -2116,7 +2115,6 @@ const V = {
     const card = $('#turncard'), box = card.querySelector('.ans');
     if (box) box.classList.add('shown');
     card.querySelectorAll('[data-act="ans"]').forEach((b, i) => { b.disabled = true; if (i === e.correct) b.classList.add('right'); else if (i === e.choice) b.classList.add('wrong'); });
-    card.querySelectorAll('[data-skip]').forEach(b => b.remove());
     const tm = card.querySelector('.timer i'); if (tm) tm.style.animationPlayState = 'paused';
     const fb = $('#fb'); if (fb) { fb.className = 'fb ' + (e.ok ? 'good' : 'bad'); fb.textContent = e.ok ? (e.quiz ? 'Right. That’s 3 more spaces.' : 'Right. Bonus die unlocked.') : (e.choice < 0 ? 'Out of time.' : 'Not this time.') + (e.quiz ? '' : ' Main die only.'); }
     if (e.ok) {
@@ -2135,14 +2133,13 @@ const V = {
       <p class="preview">${previewLine(e.dice)}</p>
       <div class="tray">${e.dice.map((d, i) => `<div class="dwrap"><div class="die ${d.kind}" id="die${i}">${face(0)}</div><small>${names[d.kind]}${d.sides !== 6 ? ` (${d.sides} sides)` : ''}</small><em id="dn${i}"></em></div>`).join('')}</div>
       <ul class="mods" id="mods"></ul><p class="total" id="total" hidden></p>
-      <div class="act" id="ract">${r.bot ? '' : actArea(r, 'Roll the dice', 'roll')}</div>${skipBtn(r)}</div>`;
+      <div class="act" id="ract">${r.bot ? '' : actArea(r, 'Roll the dice', 'roll')}</div></div>`;
     cue = { seq: e.s, rid: r.id, kind: 'roll', t0: performance.now() };
     if (canAct(r)) { const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
   },
   async rolled(G, e) {
     guard(G); cue = null;
     const r = G.racers[e.rid], ra = $('#ract'); if (ra) ra.hidden = true;
-    $$('#turncard [data-skip]').forEach(b => b.remove());
     const die = i => $('#die' + i) || document.createElement('div'), note = i => $('#dn' + i) || document.createElement('em');
     sfx.dice();
     e.dice.forEach((d, i) => die(i).classList.add('rolling'));
@@ -2198,7 +2195,7 @@ const V = {
     cue = { seq: e.s, rid: r.id, kind: 'fork', t0: performance.now() };
     $('#turncard').innerHTML = `<div class="who sm" style="--h:${C.hue}">${stk(C, 44)}<div><b>${esc(r.name)}</b></div></div>
       <div class="tcbody"><div class="pwt"><span class="ptag">Shortcut</span><strong>Jump to space ${e.to}?</strong>Answer a harder question. Get it right and you jump ${e.to - r.pos} spaces ahead. Miss it and you slide back 2.</div>
-      <div class="act forkbtns">${mine ? '<button class="btn big" data-act="fork" data-v="1">Take the shortcut</button><button class="btn ghost" data-act="fork" data-v="0">Stay on the track</button>' : `<p class="think" data-wait>${esc(r.name)} is deciding…</p>`}</div>${skipBtn(r)}</div>`;
+      <div class="act forkbtns">${mine ? '<button class="btn big" data-act="fork" data-v="1">Take the shortcut</button><button class="btn ghost" data-act="fork" data-v="0">Stay on the track</button>' : `<p class="think" data-wait>${esc(r.name)} is deciding…</p>`}</div></div>`;
     if (mine) { focusOn('#turncard'); const b = $('#turncard [data-act]'); if (b) b.focus({ preventScroll: true }); }
   },
   async card(G, e) {
@@ -2230,7 +2227,18 @@ const V = {
 /* ui is what the rules engine talks to. It runs on the device that owns the race: it draws, broadcasts, and waits for taps. */
 function emit(G, e) { if (hosting() && G.room === net.code) { e.s = ++G.seq; net.queue('PATCH', 'e' + e.s, JSON.stringify(e), true); } return e; }
 function pushSnap(G) { if (hosting() && G.room === net.code) net.queue('PATCH', '', { snap: { seq: G.seq, gid: G.gid, g: JSON.stringify(G) }, ev: null }); }
-const waitFor = (G, r, kind, e) => new Promise(res => { pending = { seq: e.s, rid: r.id, kind, resolve: v => { if (G === cur) res(v); } }; });
+/* Waits for a player's tap. A player on another device who goes silent (flat battery, closed tab) is moved on automatically
+   after 90 seconds, then after 15 seconds per step until their device answers again. Nobody can trigger this by hand. */
+const waitFor = (G, r, kind, e) => new Promise(res => {
+  let to = 0;
+  const p = pending = { seq: e.s, rid: r.id, kind, resolve: v => { clearTimeout(to); r.away = false; if (G === cur) res(v); } };
+  if (r.owner) to = setTimeout(() => {
+    if (pending !== p || G !== cur) return;
+    pending = null; cue = null; const first = !r.away; r.away = true;
+    if (first) ui.say(G, `${r.name}’s device hasn’t responded, so the race carries on without them for now.`, 'bad').catch(() => {});
+    res(kind === 'ans' ? { choice: -1, ms: 0 } : null);
+  }, (r.away ? 15 : 90) * 1000);
+});
 let lastAnswer = '';
 const ui = {
   save(G) { if (G !== cur) return; store.set('dd.game', G); pushSnap(G); },
