@@ -13,5 +13,5 @@ window.DIGIT_DERBY_CONFIG = {
   supabaseKey: "",
 
   // Option B: Firebase. Paste your Realtime Database address.
-  databaseURL: ""
+  databaseURL: "db.awxmgiindzlwtgoxtxdt.supabase.co"
 };
