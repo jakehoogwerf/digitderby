@@ -465,6 +465,8 @@ label.adapt{margin-top:10px}
 .netdiag p{margin-top:6px;max-width:60ch}
 .netdiag code{background:rgba(255,255,255,.65);border-radius:6px;padding:0 .3em;font-size:.92em}
 .netdiag .sub{color:#3a3f60}
+.errdetail{display:block;margin-top:4px;font-weight:400;font-size:.85rem;opacity:.85;word-break:break-word}
+.jerr code{font-size:.92em}
 
 </style>
 </head>
@@ -1415,7 +1417,9 @@ const nameOf = i => (S.racers[i].name || '').trim() || `Racer ${i + 1}`;
 /* ---------- online play (only when config.js gives a database address) ---------- */
 const CFG = window.DIGIT_DERBY_CONFIG || {};
 /* Two ways to connect devices: Supabase Realtime (broadcast channels, no tables) or a Firebase Realtime Database. */
-const SB_URL = String(CFG.supabaseUrl || '').trim().replace(/\/+$/, ''), SB_KEY = String(CFG.supabaseKey || '').trim();
+const SB_RAW = String(CFG.supabaseUrl || '').trim(), SB_KEY = String(CFG.supabaseKey || '').trim().replace(/^['"“”]+|['"“”]+$/g, '');
+/* Keep just https://project.supabase.co, even if a longer address like .../rest/v1/ was pasted. */
+const SB_URL = (() => { try { const u = new URL(SB_RAW); return u.protocol === 'https:' ? u.origin : ''; } catch (e) { return ''; } })();
 const DB = String(CFG.databaseURL || '').trim().replace(/\/+$/, '');
 const USE_SB = /^https:\/\/.+/.test(SB_URL) && SB_KEY.length > 20 && !!window.WebSocket;
 const USE_FB = !USE_SB && /^https?:\/\/.+/.test(DB) && !!window.EventSource && !!window.fetch;
@@ -1431,7 +1435,7 @@ function sbClient() {
     if (window.supabase && window.supabase.createClient) return make();
     const sc = document.createElement('script');
     sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js';
-    sc.onload = make; sc.onerror = () => rej(new Error('The Supabase library didn’t load.'));
+    sc.onload = make; sc.onerror = () => { const x = new Error('library download failed'); x.sb = 'NOLIB'; rej(x); };
     document.head.appendChild(sc);
   }).catch(e => { sbClientP = null; throw e; });
   return sbClientP;
@@ -1449,10 +1453,10 @@ const SBC = {
         ch.on('broadcast', { event: 'm' }, msg => o.subs.forEach(f => { try { f(msg && msg.payload); } catch (e) { console.error(e); } }));
         o.ready = new Promise((res, rej) => {
           let first = true;
-          const to = setTimeout(() => { if (first) { first = false; rej(new Error('timed out')); } }, 12000);
-          ch.subscribe(st => {
+          const to = setTimeout(() => { if (first) { first = false; const x = new Error('no answer after 12 seconds'); x.sb = 'TIMED_OUT'; rej(x); } }, 12000);
+          ch.subscribe((st, err) => {
             if (st === 'SUBSCRIBED') { if (first) { first = false; clearTimeout(to); res(); } else o.subs.forEach(f => f({ k: 'rejoined' })); }
-            else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT' || st === 'CLOSED') { if (first) { first = false; clearTimeout(to); rej(new Error(st)); } else o.subs.forEach(f => f({ k: 'lost' })); }
+            else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT' || st === 'CLOSED') { if (first) { first = false; clearTimeout(to); const x = new Error(st + (err && err.message ? ': ' + err.message : '')); x.sb = st; rej(x); } else o.subs.forEach(f => f({ k: 'lost' })); }
           });
         });
         o.ready.catch(() => { if (this.chans[code] === o) { delete this.chans[code]; client.removeChannel(o.ch); } });
@@ -1463,7 +1467,7 @@ const SBC = {
   async send(code, payload) {
     const o = await this.get(code);
     const r = await o.ch.send({ type: 'broadcast', event: 'm', payload });
-    if (r !== 'ok') throw new Error('Supabase didn’t accept the message (' + r + ').');
+    if (r !== 'ok') { const x = new Error('message not accepted (' + r + ')'); x.sb = 'SEND'; throw x; }
   },
   /* Ask whoever is hosting a room for its full state. No answer means no room. */
   async fetch(code, wait) {
@@ -1483,6 +1487,18 @@ const SBC = {
   },
 };
 
+function netHint(e) {
+  const k = e && e.sb, raw = esc(String(e && e.message || e || 'unknown'));
+  if (!USE_SB) return 'Check the address in config.js and your connection, then reload.';
+  const tip = {
+    NOLIB: 'The Supabase code couldn’t download. This network may block <code>cdn.jsdelivr.net</code>; try another network to check.',
+    CHANNEL_ERROR: 'Supabase refused the connection. Check that <code>supabaseKey</code> is the public <b>anon</b> or <b>publishable</b> key from Project Settings → API Keys, and that public channel access is allowed in Realtime → Settings.',
+    TIMED_OUT: `Supabase didn’t answer. Check that <code>supabaseUrl</code> is your project URL (the game is using <code>${esc(SB_URL)}</code>) and that the project isn’t paused: free projects pause after a week without use, and you can restore them from the Supabase dashboard.`,
+    CLOSED: 'Supabase closed the connection straight away. This usually means the key is wrong or Realtime is switched off for the project.',
+    SEND: 'Supabase connected but wouldn’t pass messages on. Check that public channel access is allowed in Realtime → Settings.',
+  }[k] || 'Check the Supabase URL and key in config.js and your connection, then reload.';
+  return `${tip} <span class="errdetail">(Details: ${raw})</span>`;
+}
 const net = {
   code: null, role: null, es: null, room: {}, out: [], pumping: false, synced: false, onChange: null, sbH: null, syncT: 0, saveT: 0,
   pid: (() => { let p = store.get('dd.pid'); if (!p) { p = 'p' + Math.random().toString(36).slice(2, 10); store.set('dd.pid', p); } return p; })(),
@@ -1616,7 +1632,7 @@ async function openRoom() {
     store.del('dd.room');
     net.open(code, 'host', onRoomHost); store.set('dd.host', { code, t: Date.now() });
     publishMeta('lobby');
-  } catch (e) { console.error(e); $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. ${USE_SB ? 'Check the Supabase URL and key in config.js' : 'Check the address in config.js'} and your connection, then reload.</p><button class="btn ghost sm" id="openroom">Try again</button>`; $('#openroom').onclick = openRoom; return; }
+  } catch (e) { console.error(e); net.close(); store.del('dd.host'); $('#invite').innerHTML = `<p class="jerr">Couldn’t reach the game server. ${netHint(e)}</p><button class="btn ghost sm" id="openroom">Try again</button>`; $('#openroom').onclick = openRoom; return; }
   renderRacers();
 }
 function closeRoom() { if (!hosting()) return; const code = net.code; net.req('DELETE', '', undefined, code).catch(() => {}); net.close(); store.del('dd.host'); store.del('dd.room'); renderRacers(); }
@@ -1774,6 +1790,7 @@ function wireHome() {
     const why = !raw ? 'The file <code>config.js</code> didn’t load. Check it’s uploaded next to <code>index.html</code> (not inside a folder), that its name is exactly <code>config.js</code>, and that its text still starts with <code>window.DIGIT_DERBY_CONFIG = {</code>. A stray character can stop it loading, and so can curly quotes (“ ”) instead of straight ones (" "), which some apps add when you paste.'
       : (sbu || sbk) && !sbu ? '<code>config.js</code> has a Supabase key but no <code>supabaseUrl</code>. Paste your project URL (like <code>https://abcd.supabase.co</code>) between its quotes.'
       : (sbu || sbk) && sbk.length <= 20 ? '<code>config.js</code> has a Supabase URL, but <code>supabaseKey</code> is empty or too short. Paste the full public key (anon or publishable) between its quotes.'
+      : sbu && !/^https:\/\/[^/]+\.supabase\.(co|in)/.test(sbu) && !/^https:\/\//.test(sbu) ? `<code>supabaseUrl</code> is <code>${esc(sbu)}</code>, which doesn’t start with <code>https://</code>. Copy the full project URL.`
       : !url ? '<code>config.js</code> loaded, but no connection details are filled in. Paste your Supabase URL and key (or a Firebase address) between the quotes and commit.'
       : !/^https?:\/\//.test(url) ? `<code>config.js</code> has <code>${esc(url)}</code>, which doesn’t start with <code>https://</code>. Copy the full address, including <code>https://</code>.`
       : 'This browser can’t do online play. Try Chrome, Edge, Safari or Firefox.';
@@ -1821,7 +1838,7 @@ async function joinRoom(code, name) {
     store.set('dd.name', name); store.set('dd.join', { code, name, t: Date.now() });
     cur = null; CL.gid = null; CL.last = 0; CL.q = {}; CL.gen++; CL.screen = '';
     net.open(code, 'client', onRoomClient);
-  } catch (e) { jerr('Couldn’t reach the game server. Check your connection and try again.'); }
+  } catch (e) { console.error(e); $('#jerr').innerHTML = 'Couldn’t reach the game server. ' + netHint(e); }
   finally { $('#jgo').disabled = false; }
 }
 function leaveRoom(msg) {
