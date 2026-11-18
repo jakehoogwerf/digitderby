@@ -1003,7 +1003,7 @@ body.full3d .b3d{display:block}
 <script>window.DD_EXPECT_CONFIG = true;</script>
 <script src="config.js"></script>
 <script>
-const DD_BUILD = 'cc0f6eb038';
+const DD_BUILD = '0ed7c75e32';
 /* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
 const rnd = n => Math.floor(Math.random() * n);
 const R = (a, b) => a + rnd(b - a + 1);
@@ -3497,8 +3497,7 @@ const B3 = {
     this.toks = {};
     const mk = (key, charId, hue, boss) => {
       const g = new THREE.Group(), base = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, 0.12, 24), M(0x161b3a)); base.position.y = 0.3; base.castShadow = true; g.add(base);
-      const geo = new THREE.CylinderGeometry(0.56, 0.56, 0.09, 40); geo.rotateX(Math.PI / 2);
-      const face = M(0xffffff, { map: this.tokTex(charId, '', hue) }), disc = new THREE.Mesh(geo, [M(0xffffff), face, face]); disc.position.y = 0.94; disc.castShadow = true; g.add(disc);
+      const face = M(0xffffff, { map: this.tokTex(charId, '', hue) }), disc = this.faceDisc(0.56, 0.09, face); disc.position.y = 0.94; g.add(disc);
       if (boss) { const cr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.2, 5, 1, true), M(0xffc928, { side: THREE.DoubleSide })); cr.position.y = 1.6; g.add(cr); }
       sc.add(g); this.toks[key] = { g, disc, face, hue, charId, cur: null, from: null, goal: null, t0: 0, dur: 1, arc: 0.5, mode: null };
     };
@@ -3512,11 +3511,19 @@ const B3 = {
     this.offset = new THREE.Vector3(0, 0.82, 0.78).normalize().multiplyScalar(need * 1.22); this.cam.position.copy(this.center).add(this.offset); this.cam.lookAt(this.center);
     this.G = G; this.on = true; this.lastEr = -1; this.lastBr = JSON.stringify((G.bridges || []).map(b => b.broken ? 1 : 0)); this.shake = 0; this.t = performance.now(); this.cheerT = -1e9; this.cine = null;
     (G.bridges || []).forEach(b => { if (b.broken) for (let i = b.from; i <= b.to; i++) if (this.tiles[i]) this.tiles[i].visible = false; });
-    const ikey = [G.gid || 'local', G.len, G.order.join('.'), Object.keys(G.tiles).join('.')].join(':'), start = G.round === 1 && G.racers.every(x => x.pos === 0), seen = INTRO_SEEN.get(ikey), nowT = performance.now();
+    const ikey = [G.gid || 'local', G.len, G.order.join('.'), Object.keys(G.tiles).join('.')].join(':'), start = G.round === 1, seen = INTRO_SEEN.get(ikey), nowT = performance.now();
     this.intro = null;
     if (start && !reduced && seen === undefined) { INTRO_SEEN.set(ikey, nowT); this.flyover(); }
-    else if (seen !== undefined && nowT - seen < 4000) { this.flyover(); this.intro.t0 = seen; }
+    else if (seen !== undefined && nowT - seen < 12000) { this.flyover(); if (nowT - seen < this.intro.dur) this.intro.t0 = seen; else this.endFly(); }
     const loop = () => { if (!this.on) return; this.frame(); this.raf = requestAnimationFrame(loop); }; loop();
+  },
+  /* A standing disc: a white rim plus flat front and back faces, so pictures are always the right way up. */
+  faceDisc(r, depth, face) {
+    const g = new THREE.Group(), geo = new THREE.CylinderGeometry(r, r, depth, 40); geo.rotateX(Math.PI / 2);
+    const rim = new THREE.Mesh(geo, this.M(0xffffff)); rim.castShadow = true; g.add(rim);
+    const front = new THREE.Mesh(new THREE.CircleGeometry(r * 0.985, 40), face); front.position.z = depth / 2 + 0.002; g.add(front);
+    const back = new THREE.Mesh(new THREE.CircleGeometry(r * 0.985, 40), face); back.rotation.y = Math.PI; back.position.z = -depth / 2 - 0.002; g.add(back);
+    return g;
   },
   decorate(k, at) {
     const M = (c, o) => this.M(c, o), g = new THREE.Group(); g.position.copy(at).setY(0.24);
@@ -3529,8 +3536,7 @@ const B3 = {
   giant(bw, M) {
     const gx = bw * 0.3, gz = -this.bd / 2 + 0.85 - 1.3, g = new THREE.Group(); g.position.set(gx, -0.6, gz); g.scale.setScalar(0.66); this.gpos = { x: gx, z: gz };
     const body = new THREE.Mesh(new THREE.ConeGeometry(1.7, 4.4, 20), M(0x7a2fb8)); body.position.y = 2.2; body.castShadow = true; g.add(body);
-    const geo = new THREE.CylinderGeometry(1.7, 1.7, 0.18, 48); geo.rotateX(Math.PI / 2);
-    const face = M(0xffffff, { map: this.tokTex('eraser', '', 280) }), head = new THREE.Mesh(geo, [M(0xffffff), face, face]); head.position.y = 5.4; head.castShadow = true; g.add(head);
+    const face = M(0xffffff, { map: this.tokTex('eraser', '', 280) }), head = this.faceDisc(1.7, 0.18, face); head.position.y = 5.4; g.add(head);
     const er = new THREE.Group(), blk = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.36, 0.6), [M(0xff8fb1), M(0xff8fb1), M(0xff8fb1), M(0x5aa0f2), M(0xff8fb1), M(0xff8fb1)]); blk.castShadow = true; er.add(blk);
     const hand = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), M(0x8a5636)); hand.position.y = 0.4; er.add(hand);
     this.scene.add(g); this.scene.add(er);
@@ -3784,6 +3790,7 @@ function playStory(key, done) {
 
 /* ---------- go ---------- */
 wireHome(); homeReady = true; goHome();
+if (viewMode === '3d') setTimeout(() => loadThree().catch(() => {}), 400);
 if (ONLINE) {
   const h = store.get('dd.host');
   const sv = store.get('dd.room');
