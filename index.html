@@ -769,7 +769,7 @@ body.full3d .b3d{display:block}
 .viewseg button{font:700 .82rem var(--body);background:#fff;color:#161b3a;border:2.5px solid var(--line);border-radius:999px;padding:.2em .8em;box-shadow:0 3px 0 var(--line)}
 .viewseg button.on{background:var(--yellow)}
 /* adventure story (comic panels) */
-.story{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(8,12,34,.72);padding:24px}
+#story{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(8,12,34,.72);padding:24px}
 .storybox{width:min(980px,96vw);border:5px solid #161b3a;border-radius:28px;box-shadow:0 14px 0 #161b3a;overflow:hidden;animation:slam .45s cubic-bezier(.2,1.4,.4,1)}
 .storybox .sbody{min-height:340px;display:grid;align-items:center;padding:34px 40px 18px;background-image:radial-gradient(rgba(255,255,255,.16) 2px,transparent 2.5px);background-size:18px 18px}
 .s-night .sbody{background-color:#2a1f5c}.s-classic .sbody{background-color:#2c9250}.s-river .sbody{background-color:#2479b0}.s-mountain .sbody{background-color:#5b6b78}
@@ -794,6 +794,7 @@ body.full3d .b3d{display:block}
 @keyframes slideinr{from{transform:translateX(60px) rotate(8deg);opacity:0}}
 @keyframes fadein{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.storybox,.sportrait,.bubble,.caption,.spanel{animation:none}}
+.viewseg button[data-fly]{margin-right:10px;background:#19bfae;color:#161b3a}
 
 </style>
 </head>
@@ -993,7 +994,7 @@ body.full3d .b3d{display:block}
 <script>window.DD_EXPECT_CONFIG = true;</script>
 <script src="config.js"></script>
 <script>
-const DD_BUILD = 'b0a6fab311';
+const DD_BUILD = '3a19d42266';
 /* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
 const rnd = n => Math.floor(Math.random() * n);
 const R = (a, b) => a + rnd(b - a + 1);
@@ -2618,7 +2619,7 @@ function tick(text, tone) {
   li.textContent = text; if (tone) li.className = tone; ol.appendChild(li);
   while (ol.children.length > 5) ol.firstChild.remove();
 }
-function colsFor() { return ($('#board').parentElement.clientWidth || 800) < 620 ? 8 : 12; }
+function colsFor() { const col = $('#board').closest('.boardcol'), w = (col && col.clientWidth) || ($('#board').parentElement.clientWidth) || 800; return w < 620 ? 8 : 12; }
 function buildBoard(G, el) {
   const b = el || $('#board'); cols = el ? 12 : colsFor(); path = [];
   if (G.board === 'mountain') {
@@ -2699,7 +2700,7 @@ function drawStandings(G) {
     const max = G.chalkMax || 3 + Math.max(0, Math.floor((G.racers.length - 2) / 3));
     s += `<span class="chalk" aria-label="${G.chalk} sticks of chalk left">Chalk ${Array.from({ length: max }, (_, i) => `<i class="${i < G.chalk ? '' : 'gone'}"></i>`).join('')}</span><span>${viewEr > 0 ? 'Evil Mr H at space ' + viewEr : 'Evil Mr H is asleep'}</span>`;
   }
-  $('#status').innerHTML = s + `<span class="viewseg" role="group" aria-label="Board view">View ${[['flat', 'Flat'], ['tilt', 'Tilted'], ['3d', '3D']].map(([k, t]) => `<button data-view="${k}" aria-pressed="${viewMode === k}"${viewMode === k ? ' class="on"' : ''}>${t}</button>`).join('')}</span>`;
+  $('#status').innerHTML = s + `<span class="viewseg" role="group" aria-label="Board view">${viewMode === '3d' ? '<button data-fly title="Replay the camera flyover">Flyover</button>' : ''}View ${[['flat', 'Flat'], ['tilt', 'Tilted'], ['3d', '3D']].map(([k, t]) => `<button data-view="${k}" aria-pressed="${viewMode === k}"${viewMode === k ? ' class="on"' : ''}>${t}</button>`).join('')}</span>`;
 }
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 const face = v => v >= 1 && v <= 6 ? PIPS[v].map(p => `<i style="grid-area:${Math.floor(p / 3) + 1}/${p % 3 + 1}"></i>`).join('') : `<b>${v || '?'}</b>`;
@@ -3383,6 +3384,7 @@ const STYLE3D = {
 const WEATHERS = [['auto', 'To match the board'], ['sunny', 'Sunny'], ['sunset', 'Sunset'], ['night', 'Night'], ['holiday', 'Holiday snow']];
 const TILE3D = { start: '#fffaf0', boost: '#ffc928', slip: '#2c7cf2', quiz: '#7a4df0', short: '#19bfae', bridge: '#b07a43', a: '#de5b40', b: '#cf4c33' };
 const PIPS3 = { 1: [[.5, .5]], 2: [[.27, .27], [.73, .73]], 3: [[.27, .27], [.5, .5], [.73, .73]], 4: [[.27, .27], [.73, .27], [.27, .73], [.73, .73]], 5: [[.27, .27], [.73, .27], [.5, .5], [.27, .73], [.73, .73]], 6: [[.27, .25], [.73, .25], [.27, .5], [.73, .5], [.27, .75], [.73, .75]] };
+const INTRO_SEEN = new Map();
 const B3 = {
   on: false, raf: 0, G: null, toks: {}, fx: [], tw: [], dice: [], shake: 0,
   stop() { cancelAnimationFrame(this.raf); this.raf = 0; if (this.r) { this.r.dispose(); this.r.domElement.remove(); } this.r = null; this.on = false; this.G = null; this.toks = {}; this.fx = []; this.tw = []; this.dice = []; },
@@ -3499,7 +3501,10 @@ const B3 = {
     this.offset = new THREE.Vector3(0, 0.82, 0.78).normalize().multiplyScalar(need * 1.22); this.cam.position.copy(this.center).add(this.offset); this.cam.lookAt(this.center);
     this.G = G; this.on = true; this.lastEr = -1; this.lastBr = JSON.stringify((G.bridges || []).map(b => b.broken ? 1 : 0)); this.shake = 0; this.t = performance.now(); this.cheerT = -1e9; this.cine = null;
     (G.bridges || []).forEach(b => { if (b.broken) for (let i = b.from; i <= b.to; i++) if (this.tiles[i]) this.tiles[i].visible = false; });
-    if (!G.introDone && !reduced) { G.introDone = true; this.intro = { t0: performance.now(), dur: 4200, pts: xs }; } else this.intro = null;
+    const ikey = [G.gid || 'local', G.len, G.order.join('.'), Object.keys(G.tiles).join('.')].join(':'), start = G.round === 1 && G.racers.every(x => x.pos === 0), seen = INTRO_SEEN.get(ikey), nowT = performance.now();
+    this.intro = null;
+    if (start && !reduced && seen === undefined) { INTRO_SEEN.set(ikey, nowT); this.flyover(); }
+    else if (seen !== undefined && nowT - seen < 4000) { this.flyover(); this.intro.t0 = seen; }
     const loop = () => { if (!this.on) return; this.frame(); this.raf = requestAnimationFrame(loop); }; loop();
   },
   decorate(k, at) {
@@ -3555,6 +3560,7 @@ const B3 = {
     const m = new THREE.Points(g, new THREE.PointsMaterial({ color: wx === 'rain' ? 0xc9e4ff : 0xffffff, size: wx === 'rain' ? 0.07 : 0.14, transparent: true, opacity: wx === 'rain' ? 0.75 : 0.95, depthWrite: false }));
     this.scene.add(m); this.wfield = { m, n, rain: wx === 'rain' };
   },
+  flyover() { if (!this.on) return; this.intro = { t0: performance.now(), dur: 4200, pts: path.map((p, i) => this.pos(i)) }; },
   mood(r, m) { const k = this.on && this.toks[r.id]; if (!k) return; k.want = m; this.tokTex(k.charId, m, k.hue, t => { if (!this.on || k.want !== m) { t.dispose(); return; } const old = k.face.map; k.face.map = t; k.face.needsUpdate = true; if (old) old.dispose(); }); },
   resize() { const el = $('#b3d'); if (!this.on || !el) return; const W = el.clientWidth, H = el.clientHeight; this.r.setSize(W, H); this.cam.aspect = W / H; this.cam.updateProjectionMatrix(); },
   /* event hooks */
@@ -3758,7 +3764,7 @@ if (ONLINE) {
   else if (!USE_SB && h && h.code && Date.now() - h.t < 6 * 3600e3) net.req('GET', 'meta', undefined, h.code).then(m => { if (m && !net.code) { net.open(h.code, 'host', onRoomHost); const g = store.get('dd.game'); if (!(g && g.room === h.code && !g.over)) publishMeta('lobby'); renderRacers(); } else if (!m) store.del('dd.host'); }).catch(() => {});
 }
 if (window.ResizeObserver) new ResizeObserver(() => { if (!cur) return; if (colsFor() !== cols) buildBoard(cur); else { place(); fit3d(); B3.resize(); } }).observe($('#race'));
-$('#status').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (!b || b.dataset.view === viewMode) return; viewMode = b.dataset.view; store.set('dd.view', viewMode); applyView(); });
+$('#status').addEventListener('click', e => { if (e.target.closest('[data-fly]')) { B3.flyover(); return; } const b = e.target.closest('[data-view]'); if (!b || b.dataset.view === viewMode) return; viewMode = b.dataset.view; store.set('dd.view', viewMode); applyView(); });
 window.addEventListener('resize', () => { if (cur) place(); });
 
 </script>
