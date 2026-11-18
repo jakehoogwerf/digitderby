@@ -805,6 +805,23 @@ body.full3d .b3d{display:block}
 .b3d.flying .flyskip{opacity:1}
 .b3d.flying{cursor:pointer}
 
+/* space and lair boards */
+.slab.b-space{background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.9) 0 1px,transparent 2px) 0 0/90px 90px,radial-gradient(circle at 70% 60%,rgba(255,255,255,.7) 0 1px,transparent 2px) 0 0/60px 60px,#0b1230}
+.slab.b-lair{background:#2a1d3d repeating-linear-gradient(90deg,#2a1d3d 0 46px,#2f2145 46px 92px)}
+.world.w-space{background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.9) 0 1px,transparent 2px) 0 0/70px 70px,radial-gradient(circle at 70% 60%,rgba(255,255,255,.7) 0 1px,transparent 2px) 0 0/45px 45px,#0b1230}
+.world.w-lair{background:#2a1d3d repeating-linear-gradient(135deg,#2a1d3d 0 30px,#33244a 30px 60px)}
+.s-space .sbody{background-color:#0b1230}.s-lair .sbody{background-color:#2a1d3d}
+/* how to work it out */
+.howto{background:#fff6d6;color:#161b3a;border:2.5px solid var(--line);border-left:8px solid #ffc928;border-radius:12px;padding:10px 14px;animation:pop .35s}
+.howto b{display:block;font:400 1.05rem var(--disp);margin-bottom:2px}
+.howto p{font-size:1.02rem;line-height:1.4;font-weight:700}
+.howline{color:#3a3f60;font-weight:400;font-size:.95rem;line-height:1.35}
+/* adventure with friends */
+.advfriends{margin:0 0 22px}
+.advfriends .frow{display:flex;align-items:center;gap:20px;justify-content:space-between}
+.advfriends .frow>div:first-child{flex:1}
+.advfriends .who-list{margin-top:12px}
+
 </style>
 </head>
 <body>
@@ -835,7 +852,7 @@ body.full3d .b3d{display:block}
         <div class="hh-side">
           <div class="panel advcard">
             <div class="abart" id="abart" aria-hidden="true"></div>
-            <div class="advtext"><h2>Adventure</h2><p>Play on your own through 12 levels. Earn stars and unlock new racers.</p><button class="btn" id="openadv">Play adventure</button></div>
+            <div class="advtext"><h2>Adventure</h2><p>Play on your own through 20 levels in five worlds. Earn stars and unlock new racers.</p><button class="btn" id="openadv">Play adventure</button></div>
           </div>
           <div class="panel joinbox" id="joinbox" hidden>
             <h2>Join a friend’s race</h2>
@@ -880,6 +897,7 @@ body.full3d .b3d{display:block}
               <label class="flabel" for="glevel">Level</label>
               <select id="glevel" class="bigsel"></select>
               <label class="chk adapt"><input type="checkbox" id="adapt"> Adjust each racer’s level as they play</label>
+              <label class="chk adapt"><input type="checkbox" id="hints"> After a wrong answer, show how to work it out</label>
               <p class="hint">3 right in a row moves a racer up a level, and 2 misses in a row moves them down. You can also set a level for each racer in step 2.</p>
             </div>
             <div class="field">
@@ -991,10 +1009,12 @@ body.full3d .b3d{display:block}
     <p><b>Team up.</b> Evil Mr H chases the team from the start line, wiping the board as he goes. If he catches a racer, the team spends a stick of chalk to redraw them a little ahead. Get everyone across the line before the chalk runs out. Racers who have finished keep answering questions, and their rolls go to the teammate at the back. Powers that would push other racers back push Evil Mr H back instead. The scoreboard on the Team up card keeps count of how many times the class has beaten him, and how many times he has won.</p>
     <p><b>Playing on separate devices.</b> If this copy of the game has online play switched on, one person sets up the race and taps “Let others join”. Everyone else opens the same page, types the invite code and picks a racer. The race runs on the first person’s device, so that device needs to stay open.</p>
     <p><b>Knockout tournament.</b> Choose it on the home screen with 3 to 8 racers. The game draws heats, and the best racers from each go through to the final. A bracket between races shows who’s through and who’s out. Heats are quick races; the final uses your race length. It works with invite codes too.</p>
-    <p><b>Adventure.</b> Play on your own through 12 levels in three worlds: races, chases by Evil Mr H, and bosses. Win a level for a star, win with 70% right for 2 stars, and with 90% right for 3. You start with 6 racers, and every star unlocks more; 3 stars on every level unlocks all of them. Progress is saved on this device only. Bosses wear a crown and move extra spaces every turn.</p>
+    <p><b>Adventure.</b> Play on your own through 20 levels in five worlds (Sports Field, River Crossing, Mountain Climb, Space Station and Evil Mr H’s Lair): races, chases by Evil Mr H, bosses, and a final showdown against Evil Mr H himself. Win a level for a star, win with 70% right for 2 stars, and with 90% right for 3. You start with 6 racers, and every star unlocks more; 3 stars on every level unlocks all of them. Progress is saved on this device only. Bosses wear a crown and move extra spaces every turn.</p>
     <p><b>Evil Mr H’s special moves.</b> In team-up races, every third round once he’s awake, he plays a move: <b>Homework</b> (everyone answers; right moves you 1 forward, wrong slips you 2 back), <b>Detention</b> (the leader misses a turn, unless they have a Shield), <b>Surprise test</b> (one racer answers for the team: right pushes him back 3, wrong lets him charge 3) or <b>Confiscated</b> (he takes an item card). Switch them off in Race options.</p>
     <p><b>Results.</b> After a race, click <b>Results</b> to see how each player did by question type and every question they missed, with their answer and the right one. <b>Print</b> gives a clean page to keep.</p>
     <p><b>Board builder.</b> In Race options, click <b>Make your own board</b>. Choose a style and length, then click spaces to add boosts, slips, pop quizzes, bridges and shortcuts. Saved boards appear in the Board choices. <b>Copy share code</b> gives a code that anyone can paste into their own board builder.</p>
+    <p><b>How to work it out.</b> After a wrong answer, a short method appears under the question, using that question’s own numbers. It stays up for a few seconds, and is read out if Read aloud is on. Results also show the method beside each missed question. Switch it off in step 3.</p>
+    <p><b>Adventure with friends.</b> On the Adventure map, click <b>Invite friends</b> and share the code. Up to 3 friends join from their own devices, pick racers, and race each level you choose as a team. In race levels the team wins if anyone crosses the line first; in chase levels everyone must get home. Rivals get tougher for bigger teams. Everyone’s own device saves the stars they earn.</p>
     <p><b>Read aloud.</b> Tap the speaker on any question to hear it and its answers. Switch on “Read aloud” at the top to have every question on this device read out automatically.</p>
     <p><b>Keys.</b> Press 1, 2, 3 or 4 to pick an answer.</p>
   </div>
@@ -1003,7 +1023,7 @@ body.full3d .b3d{display:block}
 <script>window.DD_EXPECT_CONFIG = true;</script>
 <script src="config.js"></script>
 <script>
-const DD_BUILD = '0ed7c75e32';
+const DD_BUILD = 'cd2e11bb36';
 /* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
 const rnd = n => Math.floor(Math.random() * n);
 const R = (a, b) => a + rnd(b - a + 1);
@@ -1399,6 +1419,121 @@ GEN.words = function (l) {
   return QN(`${A} thinks of a number, multiplies it by ${mu}, then adds ${c}. The answer is ${tot}. What was the number?`, n, [tot - c, Math.round(tot / mu), n + 1, (tot + c) / mu]);
 };
 
+/* ---------- helpful mistakes: a short "how to work it out" for each question ---------- */
+const plainQ = h => String(h).replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<span class="fr"><i>([\s\S]*?)<\/i><i>([\s\S]*?)<\/i><\/span>/g, (m, a, b) => `${a.replace(/<[^>]+>/g, '').replace('?', '□')}/${b}`).replace(/<b class="bx">\?<\/b>/g, '□').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const numv = s => +String(s).replace('−', '-');
+function explain(q) {
+  const t = plainQ(q.html), A = plainQ(q.answer), tp = q.topic, N = '(−?[\\d.]+)'; let m;
+  if ((m = t.match(new RegExp(`^${N} \\+ ${N}$`)))) {
+    const a = numv(m[1]), b = numv(m[2]), big = Math.max(a, b), small = Math.min(a, b);
+    if (a < 0) return `Start at ${m[1]} on a number line and count ${m[2]} to the right. You land on ${A}.`;
+    if (!Number.isInteger(a) || !Number.isInteger(b)) return `Line up the decimal points, then add each column from the right: ${m[1]} + ${m[2]} = ${A}.`;
+    if (small >= 10) { const tens = Math.floor(small / 10) * 10, ones = small - tens; return ones ? `Add ${tens} first, then the ${ones} left over: ${big} + ${tens} = ${big + tens}, then + ${ones} = ${A}.` : `Add the tens: ${big} + ${tens} = ${A}.`; }
+    return `Start from the bigger number and count on: ${big}, then ${small} more makes ${A}.`;
+  }
+  if ((m = t.match(new RegExp(`^${N} − \\(−([\\d.]+)\\)$`)))) return `Taking away a negative is the same as adding: ${m[1]} − (−${m[2]}) = ${m[1]} + ${m[2]} = ${A}.`;
+  if ((m = t.match(new RegExp(`^${N} − ${N}$`)))) {
+    const a = numv(m[1]), b = numv(m[2]);
+    if (a - b < 0 || a < 0) return `Use a number line: start at ${m[1]} and move ${m[2]} to the left. You go past zero and land on ${A}.`;
+    if (!Number.isInteger(a) || !Number.isInteger(b)) return `Line up the decimal points, then subtract each column from the right: ${m[1]} − ${m[2]} = ${A}.`;
+    if (b >= 10) { const tens = Math.floor(b / 10) * 10, ones = b - tens; return ones ? `Take away ${tens} first, then the ${ones} left over: ${a} − ${tens} = ${a - tens}, then − ${ones} = ${A}.` : `Take away the tens: ${a} − ${tens} = ${A}.`; }
+    return `Count back ${b} from ${a}, or count up from ${b} to ${a}. Either way the answer is ${A}.`;
+  }
+  if ((m = t.match(new RegExp(`^${N} × \\(?${N}\\)?$`)))) {
+    const a = numv(m[1]), b = numv(m[2]);
+    if (a < 0 || b < 0) return `Multiply without the signs first: ${Math.abs(a)} × ${Math.abs(b)} = ${Math.abs(a * b)}. One negative makes the answer negative, and two negatives make it positive: ${A}.`;
+    const ten = [10, 100].includes(b) ? b : [10, 100].includes(a) ? a : 0;
+    if (ten) return `Multiplying by ${ten} makes a number ${ten} times bigger: every digit moves ${ten === 100 ? 'two places' : 'one place'} to the left. ${m[1]} × ${m[2]} = ${A}.`;
+    if (!Number.isInteger(a) || !Number.isInteger(b)) { const d = Number.isInteger(a) ? b : a, w = d === a ? b : a, k = Math.round(d * 10); return `${fmt(d)} is ${k} tenths. Work out ${k} × ${w} = ${k * w}, then make it 10 times smaller: ${A}.`; }
+    if (a <= 12 && b <= 12) {
+      if (b % 2 === 0 && b > 2) return `Use a fact you know: ${a} × ${b / 2} = ${a * b / 2}, then double it: ${A}.`;
+      if (a % 2 === 0 && a > 2) return `Use a fact you know: ${a / 2} × ${b} = ${a * b / 2}, then double it: ${A}.`;
+      return `Count in ${a}s, ${b} times: ${Array.from({ length: Math.min(b, 5) }, (_, i) => a * (i + 1)).join(', ')}${b > 5 ? ' …' : ''} up to ${A}.`;
+    }
+    const big = Math.max(a, b), small = Math.min(a, b), tens = Math.floor(big / 10) * 10, ones = big - tens;
+    return `Split ${big} into ${tens} and ${ones}: ${tens} × ${small} = ${tens * small} and ${ones} × ${small} = ${ones * small}. Add them together: ${A}.`;
+  }
+  if ((m = t.match(new RegExp(`^${N} ÷ ${N}$`)))) {
+    const a = numv(m[1]), b = numv(m[2]);
+    if (b === 10 || b === 100) return `Dividing by ${b} makes a number ${b} times smaller: every digit moves ${b === 100 ? 'two places' : 'one place'} to the right. ${m[1]} ÷ ${b} = ${A}.`;
+    return `Use the times table backwards: what times ${b} makes ${fmt(Math.abs(a))}? ${A.replace('−', '')} × ${b} = ${fmt(Math.abs(a))}${a < 0 ? ', and a negative divided by a positive is negative' : ''}. So the answer is ${A}.`;
+  }
+  if ((m = t.match(/^Half of (\d+)$/))) return `Half means splitting into 2 equal parts: ${m[1]} ÷ 2 = ${A}.`;
+  if ((m = t.match(/^Double (\d+)$/))) return `Double means 2 lots of it: ${m[1]} + ${m[1]} = ${A}.`;
+  if ((m = t.match(/^A quarter of (\d+)$/))) return `A quarter is half of a half: half of ${m[1]} is ${m[1] / 2}, and half again is ${A}.`;
+  if ((m = t.match(/^(\d+)\/(\d+) of (\d+)$/))) { const k = +m[1], d = +m[2], n = +m[3]; return `Find one part first: ${n} ÷ ${d} = ${n / d}. Then take ${k} ${k === 1 ? 'part' : 'parts'}: ${n / d} × ${k} = ${A}.`; }
+  if ((m = t.match(/^(\d+)\/(\d+) \+ (\d+)\/(\d+)$/))) {
+    if (m[2] === m[4]) return `The bottom numbers match, so add the top numbers and keep the bottom the same: ${m[1]} + ${m[3]} = ${+m[1] + +m[3]}, so the answer is ${A}.`;
+    const d = m[2] * m[4]; return `Make the bottom numbers the same first. ${m[1]}/${m[2]} = ${m[1] * m[4]}/${d} and ${m[3]}/${m[4]} = ${m[3] * m[2]}/${d}. Add the tops (${m[1] * m[4] + m[3] * m[2]}/${d}), then simplify: ${A}.`;
+  }
+  if ((m = t.match(/^□\/(\d+) = (\d+)\/(\d+)$/))) return `The bottom number went from ${m[3]} to ${m[1]}, which is × ${m[1] / m[3]}. Do the same to the top: ${m[2]} × ${m[1] / m[3]} = ${A}.`;
+  if ((m = t.match(/^Simplify (\d+)\/(\d+)$/))) { const g = gcd(+m[1], +m[2]); return `Find the biggest number that goes into both ${m[1]} and ${m[2]}: it’s ${g}. Divide the top and bottom by ${g}: ${A}.`; }
+  if ((m = t.match(/^(\d+)\/(\d+) as a percentage$/))) return `Percent means “out of 100”, so make the bottom number 100: ${m[1]}/${m[2]} = ${A.replace('%', '')}/100 = ${A}.`;
+  if ((m = t.match(/^([\d.]+) as a percentage$/))) return `To turn a decimal into a percentage, multiply by 100: ${m[1]} × 100 = ${A}.`;
+  if ((m = t.match(/^Round (−?[\d.]+) to/))) return `Look at the digit just after the place you’re rounding to. If it’s 5 or more, round up; if it’s 4 or less, round down. ${m[1]} rounds to ${A}.`;
+  if ((m = t.match(/^(\d+) (more|less) than (\d+)$/))) return `${m[1]} ${m[2]} than a number changes its ${m[1] === '100' ? 'hundreds' : 'tens'} digit by 1: ${m[3]} ${m[2] === 'more' ? '+' : '−'} ${m[1]} = ${A}.`;
+  if ((m = t.match(/^(\d) tens and (\d) ones$/))) return `${m[1]} tens is ${m[1] * 10} and ${m[2]} ones is ${m[2]}: ${m[1] * 10} + ${m[2]} = ${A}.`;
+  if ((m = t.match(/^What is the (\d) worth in (\d+)\?$/))) { const pl = ['ones', 'tens', 'hundreds', 'thousands'][m[2].length - 1 - m[2].indexOf(m[1])]; return `In ${m[2]}, the ${m[1]} is in the ${pl} place, so it’s worth ${A}.`; }
+  if ((m = t.match(new RegExp(`^${N}(, ${N})+, □$`)))) {
+    const v = t.replace(', □', '').split(', ').map(numv), d = v[1] - v[0];
+    if (v.every((x, i) => i === 0 || x - v[i - 1] === d)) return `Find the step: each number ${d >= 0 ? 'goes up' : 'goes down'} by ${Math.abs(d)}. So the next one is ${fmt(v[v.length - 1])} ${d >= 0 ? '+' : '−'} ${Math.abs(d)} = ${A}.`;
+    return `Each number is ${v[1] / v[0]} times the one before, so the next one is ${v[v.length - 1]} × ${v[1] / v[0]} = ${A}.`;
+  }
+  if ((m = t.match(/^If n = (\d+), what is (\d+)n − (\d+)\?$/))) return `${m[2]}n means ${m[2]} × n. Put in n = ${m[1]}: ${m[2]} × ${m[1]} = ${m[2] * m[1]}, then − ${m[3]} = ${A}.`;
+  if (/□/.test(t) && /=/.test(t)) return `Undo the sum with the opposite operation: undo adding by subtracting, and undo multiplying by dividing. The missing number is ${A}. Put it in the box and check the sum works.`;
+  if (/^Solve/.test(t)) return `Undo the steps in reverse order: first undo the adding or subtracting, then undo the multiplying or dividing. x = ${A}. Check by putting ${A} back in.`;
+  if ((m = t.match(/^(\d+)% of (\d+)$/))) {
+    const p = +m[1], n = +m[2];
+    if (p === 10) return `10% is one tenth: ${n} ÷ 10 = ${A}.`; if (p === 50) return `50% is half: ${n} ÷ 2 = ${A}.`;
+    if (p === 25) return `25% is a quarter: half of ${n} is ${n / 2}, and half again is ${A}.`;
+    return `Find 10% first: ${n} ÷ 10 = ${fmt(n / 10)}. ${p}% is ${fmt(p / 10)} lots of that: ${fmt(n / 10)} × ${fmt(p / 10)} = ${A}.`;
+  }
+  if ((m = t.match(/^What percentage is (\d+) out of (\d+)\?$/))) return `Write it as a fraction, ${m[1]}/${m[2]}, then change it to an amount out of 100: ${A}.`;
+  if ((m = t.match(/^Increase (\d+) by (\d+)%$/))) return `Find ${m[2]}% of ${m[1]} first (${fmt(m[1] * m[2] / 100)}), then add it on: ${m[1]} + ${fmt(m[1] * m[2] / 100)} = ${A}.`;
+  if (tp === 'order') return `Work in this order: brackets first, then powers (like ²), then × and ÷, then + and −, going left to right. The answer is ${A}.`;
+  if (tp === 'time') {
+    if (/What time is it/.test(t)) return `The short hand shows the hour and the long hand shows the minutes. Each number on the clock is 5 minutes, so count in 5s from the 12. The time is ${A}.`;
+    if (/in 12-hour/.test(t)) return `For times from 13:00, take 12 away from the hours and add “pm”. Times before 12:00 are “am”. The answer is ${A}.`;
+    if (/in 24-hour/.test(t)) return `For pm times, add 12 to the hours. For 12 am times the hours become 00. The answer is ${A}.`;
+    if ((m = t.match(/from (\d+):(\d+) to (\d+):(\d+)/))) return m[1] === m[3] ? `Both times are in the same hour, so take the minutes away: ${+m[4]} − ${+m[2]} = ${A}.` : `Count up in two steps: from ${m[1]}:${m[2]} to ${m[3]}:00 is ${60 - +m[2]} minutes, then ${+m[4]} more minutes. Altogether: ${A}.`;
+    if (/How long/.test(t)) return `Count up from the start time to the end time: first to the next o’clock, then hour by hour, then the extra minutes. It lasts ${A}.`;
+    if (/after/.test(t)) return `Add the hours first, then the minutes. If the minutes go past 60, carry 1 into the hours. The time is ${A}.`;
+    if (/in words|digital/.test(t)) return `“Quarter past” is 15 minutes after the hour, “half past” is 30, and “quarter to” is 15 minutes before the next hour. The answer is ${A}.`;
+    if (/hours and minutes|How many minutes in/.test(t)) return `1 hour is 60 minutes. Count the hours in 60s, then add the extra minutes: ${A}.`;
+    return `Remember: 60 seconds in a minute, 60 minutes in an hour, 24 hours in a day, 7 days in a week, 52 weeks and 12 months in a year. The answer is ${A}.`;
+  }
+  if (tp === 'pics') {
+    if (/not shaded/.test(t)) return `Count the parts that are not shaded for the top number, and all the parts for the bottom number: ${A}.`;
+    if (/percentage is shaded/.test(t)) return `Write the shaded part as a fraction, then change the bottom number to 100: ${A}.`;
+    if (/shaded/.test(t)) return `Count the shaded parts for the top number, and all the parts for the bottom number: ${A}.`;
+    if (/multiplication matches/.test(t)) return `Count the rows and how many dots are in each row: rows × dots in a row = ${A}.`;
+    if (/dots/.test(t)) return `Count the rows, then how many dots are in each row, and multiply. That’s quicker than counting every dot: ${A}.`;
+    if (/arrow/.test(t)) return `Work out what each small mark is worth by counting the marks between two labelled numbers, then count along to the arrow: ${A}.`;
+    if (/sides/.test(t)) return `Count each straight edge once, going all the way round the shape: ${A}.`;
+    if (/perimeter/.test(t)) return `Perimeter is the distance all the way round: add all four sides (long + short + long + short) = ${A}.`;
+    if (/area/.test(t)) return `Area is length × width, which is the same as counting the squares: ${A}.`;
+    if (/angle/.test(t)) return `The three angles add up to 180°. Add the two you know, then take that away from 180°: ${A}.`;
+    if (/mean/.test(t)) return `Add up all the bars, then divide by how many bars there are: ${A}.`;
+    return `Read the top of each bar against the numbers up the side, then work it out: ${A}.`;
+  }
+  if (tp === 'words') {
+    if (/change/.test(t)) return `Change is what’s left over: take the price away from the money paid. The answer is ${A}.`;
+    if (/% off/.test(t)) return `Find the discount first (that % of the price), then take it away from the price: ${A}.`;
+    if (/ratio/.test(t)) return `Work out what one part of the ratio is worth (red counters ÷ the red number), then multiply by the blue number: ${A}.`;
+    if (/mean/.test(t)) return `Add the scores together, then divide by how many games there were: ${A}.`;
+    if (/thinks of a number/.test(t)) return `Work backwards: undo the adding by subtracting, then undo the multiplying by dividing: ${A}.`;
+    if (/of them/.test(t)) return `Find one part first by dividing by the bottom number, then multiply by the top number: ${A}.`;
+    if (/finish\?/.test(t)) return `Add the minutes to the start time. When the minutes go past 60, carry 1 into the hours: ${A}.`;
+    if (/shared equally/.test(t)) return `Sharing equally means dividing: total ÷ number of friends = ${A}.`;
+    if (/in each|every minute/.test(t) && !/gives/.test(t)) return `Equal groups means multiplying: number of groups × how many in each = ${A}.`;
+    if (/packs/.test(t)) return `Multiply to find the total cards, then subtract the ones given away: ${A}.`;
+    if (/more|left/.test(t)) return `“How many more” and “how many left” both mean subtract: ${A}.`;
+    if (/fly away/.test(t)) return `Take away the birds that fly off, then add the ones that land: ${A}.`;
+    return `“Altogether” means add the amounts together: ${A}.`;
+  }
+  return `The right answer is ${A}. Try working it out again, step by step.`;
+}
+
 const TOPICS = [
   ['add', 'Addition'], ['sub', 'Subtraction'], ['mul', 'Multiplication'], ['div', 'Division'],
   ['frac', 'Fractions'], ['place', 'Place value and rounding'], ['alg', 'Missing numbers and patterns'],
@@ -1525,6 +1660,15 @@ const CHARS = [
     async onPassed(G, me, mover) { if (me.mem.puff || mover.pos === me.pos) return; me.mem.puff = 1; await hinder(G, me, [mover], 1, 'Puff Up'); if (!G.over) await shift(G, me, 2, 'Puff Up', 'power'); } },
 ];
 const CH = {}; CHARS.forEach((c, i) => { CH[c.id] = c; c.hue = (i * 47 + 8) % 360; });
+/* Evil Mr H races only as the final Adventure boss, so he isn't in the racer list. */
+CH.mrh = { id: 'mrh', name: 'Evil Mr H', hue: 280, power: 'Detention!', text: 'Every third turn he gives the racer in front of him detention, and they miss their next turn.',
+  async start(G, r) {
+    if (r.turns % 3 !== 0) return;
+    const lead = alive(G).filter(o => o !== r && o.pos > r.pos).sort((a, b) => b.pos - a.pos)[0]; if (!lead) return;
+    await ui.power(G, r, 'Detention!');
+    if (useCard(lead, 'shield')) await ui.card(G, lead, 'shield', 'used', `${lead.name}’s shield gets them out of detention.`);
+    else { lead.detention = true; await ui.say(G, `${lead.name} gets detention and will miss their next turn.`, 'bad'); }
+  } };
 
 /* ---------- moving ---------- */
 async function finish(G, r) {
@@ -1631,6 +1775,8 @@ const ADV_WORLDS = [
   { name: 'Sports Field', board: 'classic' },
   { name: 'River Crossing', board: 'river' },
   { name: 'Mountain Climb', board: 'mountain' },
+  { name: 'Space Station', board: 'space' },
+  { name: 'Evil Mr H’s Lair', board: 'lair' },
 ];
 const ADV = [
   { w: 0, title: 'Warm-up lap', sub: 'Your first race. Beat one rival to the finish line.', len: 30, mode: 'versus', rivals: [['sloth', 0.45, -1]] },
@@ -1645,6 +1791,14 @@ const ADV = [
   { w: 2, title: 'Thin air', sub: '30 seconds per question, and the rivals are sharp.', len: 50, mode: 'versus', timer: 30, rivals: [['giraffe', 0.68], ['mouse', 0.6, -1]] },
   { w: 2, title: 'Avalanche', sub: 'Evil Mr H comes down the mountain after you, and you have just 1 stick of chalk. Don’t look back.', len: 50, mode: 'coop', eraser: 2, chalk: 1, rivals: [] },
   { w: 2, title: 'Final boss: Tri-Rex the Great', sub: 'The toughest racer in the game, with a dragon by its side.', len: 50, mode: 'versus', rivals: [['trex', 0.7, 1, 'Tri-Rex the Great'], ['dragon', 0.55, -1]], boss: true },
+  { w: 3, title: 'Lift-off', sub: 'Welcome to the Space Station. Everything floats up here, and wormholes can fling you ahead.', len: 50, mode: 'versus', rivals: [['bat', 0.6, -1], ['octo', 0.6, -1]] },
+  { w: 3, title: 'Zero gravity', sub: '30 seconds per question, against two quick rivals.', len: 50, mode: 'versus', timer: 30, rivals: [['falcon', 0.66, 0], ['uni', 0.6, -1]] },
+  { w: 3, title: 'Meteor chase', sub: 'Evil Mr H chases you through the asteroid belt, and you have just 1 stick of chalk.', len: 50, mode: 'coop', eraser: 2, chalk: 1, rivals: [] },
+  { w: 3, title: 'Boss: Astro Octo', sub: 'Eight arms, eight times the trouble. Astro Octo brings a friend.', len: 50, mode: 'versus', rivals: [['octo', 0.7, 1, 'Astro Octo'], ['bee', 0.56, -1]], boss: true },
+  { w: 4, title: 'The front gate', sub: 'Three of Evil Mr H’s guards stand between you and his Lair.', len: 50, mode: 'versus', rivals: [['badger', 0.62, -1], ['rhino', 0.62, -1], ['shark', 0.6, -1]] },
+  { w: 4, title: 'Trap corridor', sub: 'Slips and crumbling bridges everywhere, and only 30 seconds per question.', len: 50, mode: 'versus', timer: 30, rivals: [['croc', 0.68, 0], ['fox', 0.62, -1]] },
+  { w: 4, title: 'Mr H’s chase', sub: 'Evil Mr H chases you through his own Lair. 1 stick of chalk. Run!', len: 50, mode: 'coop', eraser: 2, chalk: 1, rivals: [] },
+  { w: 4, title: 'Final showdown: Evil Mr H', sub: 'Race Evil Mr H himself for the Golden Chalk. Watch out for his detentions!', len: 50, mode: 'versus', rivals: [['mrh', 0.64, 1, 'Evil Mr H']], boss: true },
 ];
 const ADV_STARTERS = ['even', 'dot', 'panda', 'cat', 'pig', 'sheep'];
 
@@ -1652,6 +1806,8 @@ const BOARDS = [
   { id: 'classic', name: 'Classic track' },
   { id: 'river', name: 'River crossing' },
   { id: 'mountain', name: 'Mountain climb' },
+  { id: 'space', name: 'Space station' },
+  { id: 'lair', name: 'Evil Mr H’s lair' },
 ];
 async function takeShortcut(G, r) {
   const to = G.shorts[r.pos];
@@ -1794,7 +1950,7 @@ function makeBoard(len, board) {
   const tiles = {}, shorts = {}, bridges = [], used = new Set([0, len]);
   const free = (a, b) => { for (let i = a; i <= b; i++) if (used.has(i)) return false; return true; };
   const take = (a, b) => { for (let i = a; i <= b; i++) used.add(i); };
-  const spec = { classic: { br: 0, sc: 0, k: 12 }, river: { br: 2, sc: 2, k: 15 }, mountain: { br: 1, sc: 3, k: 14 } }[board] || { br: 0, sc: 0, k: 12 };
+  const spec = { classic: { br: 0, sc: 0, k: 12 }, river: { br: 2, sc: 2, k: 15 }, mountain: { br: 1, sc: 3, k: 14 }, space: { br: 0, sc: 4, k: 13 }, lair: { br: 2, sc: 2, k: 12 } }[board] || { br: 0, sc: 0, k: 12 };
   for (let i = 0; i < spec.br; i++) for (let tries = 0; tries < 40; tries++) {
     const f = Math.round(len * (0.3 + 0.4 * i / Math.max(1, spec.br - 1))) + R(-4, 4);
     if (f > 6 && f + 2 < len - 4 && free(f - 2, f + 3)) { bridges.push({ from: f, to: f + 2, hp: 3, broken: false }); take(f - 2, f + 3); break; }
@@ -1804,7 +1960,7 @@ function makeBoard(len, board) {
     if (f > 3 && t < len - 2 && free(f, f) && free(t, t) && !bridges.some(b => t >= b.from - 1 && t <= b.to)) { shorts[f] = t; take(f, f); take(t, t); break; }
   }
   const spots = shuffle(Array.from({ length: len - 7 }, (_, i) => i + 4).filter(i => !used.has(i))), n = Math.round(len / spec.k);
-  const mix = board === 'mountain' ? ['boost', 'slip', 'slip', 'quiz'] : ['boost', 'slip', 'quiz'];
+  const mix = board === 'mountain' ? ['boost', 'slip', 'slip', 'quiz'] : board === 'space' ? ['boost', 'boost', 'slip', 'quiz'] : board === 'lair' ? ['slip', 'slip', 'boost', 'quiz', 'quiz'] : ['boost', 'slip', 'quiz'];
   let j = 0; mix.forEach(k => { for (let i = 0; i < n && j < spots.length; i++) tiles[spots[j++]] = k; });
   return { tiles, shorts, bridges };
 }
@@ -1812,7 +1968,7 @@ function newGame(S) {
   const racers = S.racers.map((p, i) => ({ id: i, name: (p.name || '').trim() || `Racer ${i + 1}`, charId: p.charId, level: p.level, bot: !!p.bot, owner: p.owner || '', botP: p.botP || 0, boost: p.boost || 0, boss: !!p.boss, cards: [], up: 0, down: 0, pos: 0, streak: 0, correct: 0, asked: 0, turns: 0, lastMiss: false, finished: false, mem: {} }));
   const cb = S.customBoard, len = cb ? cb.len : S.len;
   const B = cb ? { tiles: Object.assign({}, cb.tiles), shorts: Object.assign({}, cb.shorts), bridges: cb.bridges.map(b => ({ from: b.from, to: b.to, hp: 3, broken: false })) } : makeBoard(len, S.board);
-  return { mode: S.mode, len, weather: S.weather || 'auto', boardName: cb ? cb.name : '', mrhMoves: S.mode === 'coop' && S.moves !== false, board: cb ? cb.style : BOARDS.some(b => b.id === S.board) ? S.board : 'classic', adapt: S.adapt !== false, topics: S.topics.slice(), timer: S.timer, racers, order: shuffle(racers.map(r => r.id)), ti: 0, round: 1, over: false, result: null, tiles: B.tiles, shorts: B.shorts, bridges: B.bridges, eraser: 0, lastMove: '', eraserLvl: S.eraser, chalk: 3 + Math.max(0, Math.floor((racers.length - 2) / 3)), finishOrder: [], last: null };
+  return { mode: S.mode, len, hints: S.hints !== false, weather: S.weather || 'auto', boardName: cb ? cb.name : '', mrhMoves: S.mode === 'coop' && S.moves !== false, board: cb ? cb.style : BOARDS.some(b => b.id === S.board) ? S.board : 'classic', adapt: S.adapt !== false, topics: S.topics.slice(), timer: S.timer, racers, order: shuffle(racers.map(r => r.id)), ti: 0, round: 1, over: false, result: null, tiles: B.tiles, shorts: B.shorts, bridges: B.bridges, eraser: 0, lastMove: '', eraserLvl: S.eraser, chalk: 3 + Math.max(0, Math.floor((racers.length - 2) / 3)), finishOrder: [], last: null };
 }
 async function runGame(G) {
   while (!G.over) {
@@ -1824,7 +1980,7 @@ async function runGame(G) {
   }
   await ui.end(G);
 }
-if (typeof module !== 'undefined') module.exports = { fracWords, CHARS, CH, GEN, TOPICS, LEVELS, CARDS, BOARDS, ADV, ADV_WORLDS, ADV_STARTERS, makeBoard, makeQuestion, newGame, runGame, setUI: u => { globalThis.ui = u; } };
+if (typeof module !== 'undefined') module.exports = { explain, plainQ, fracWords, CHARS, CH, GEN, TOPICS, LEVELS, CARDS, BOARDS, ADV, ADV_WORLDS, ADV_STARTERS, makeBoard, makeQuestion, newGame, runGame, setUI: u => { globalThis.ui = u; } };
 
 /* ===== Digit Derby racer drawings (one shared kit, 40 faces) ===== */
 const ART = (() => {
@@ -1955,6 +2111,7 @@ const ART = (() => {
     cheer: () => spark(10, 28, 1.1) + spark(91, 66, 0.9) + spark(16, 80, 0.7) + S('M4 52q-3 -6 0 -12M96 40q3 6 0 12', K, 2.6),
     worried: () => `<path d="M14 30q-7 10 0 14.5q7 -4.5 0 -14.5z" fill="#8fd8f0" stroke="${K}" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.2 39q0.6 2 2.2 2.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`,
   };
+  A.mrh = A.eraser;
   return (id, mood) => {
     MOOD = extras[mood] ? mood : '';
     let body; try { body = (A[id] || A.zero)(); } finally { MOOD = ''; }
@@ -2062,6 +2219,7 @@ function validSetup(s) {
     if (![0, 1, 2].includes(s.eraser)) s.eraser = 1;
     if (!BOARDS.some(b => b.id === s.board) && !customDef(s.board)) s.board = 'classic';
     s.moves = s.moves !== false;
+    s.hints = s.hints !== false;
     if (!['auto', 'sunny', 'sunset', 'night', 'holiday'].includes(s.weather)) s.weather = 'auto';
     s.adapt = s.adapt !== false;
     return s;
@@ -2301,11 +2459,11 @@ function roster() {
 function publishMeta(phase) {
   if (!hosting()) return;
   clearTimeout(H.metaT);
-  H.metaT = setTimeout(() => net.queue('PATCH', 'meta', { phase: phase || (cur ? 'race' : 'lobby'), mode: S.mode, v: DD_VERSION, locals: JSON.stringify(S.racers.map((p, i) => ({ name: nameOf(i), charId: p.charId }))) }), phase ? 0 : 250);
+  H.metaT = setTimeout(() => net.queue('PATCH', 'meta', { phase: phase || (cur ? 'race' : 'lobby'), mode: advMode() ? 'adv' : S.mode, v: DD_VERSION, locals: JSON.stringify(advMode() ? [{ name: A.name.trim() || 'Host', charId: A.char }] : S.racers.map((p, i) => ({ name: nameOf(i), charId: p.charId }))) }), phase ? 0 : 250);
 }
 function onRoomHost(path) {
   if (/^\/(meta|ev|snap)/.test(path || '')) return;
-  const taken = new Set(S.racers.map(p => p.charId)), room = MAXR - S.racers.length;
+  const taken = new Set(advMode() ? [A.char] : S.racers.map(p => p.charId)), room = advMode() ? 3 : MAXR - S.racers.length;
   remotes().forEach((p, i) => {
     if (cur) return;
     if (i >= room) { net.queue('DELETE', 'players/' + p.pid); return; }
@@ -2314,6 +2472,7 @@ function onRoomHost(path) {
     taken.add(p.charId);
   });
   if (!cur && !$('#home').hidden) renderRacers();
+  if (!cur && !$('#adv').hidden) renderFriends();
   if (pending && net.room.in) for (const pid in net.room.in) {
     let m; try { m = JSON.parse(net.room.in[pid]); } catch (e) { continue; }
     if (pending && m && m.for === pending.seq && m.k === pending.kind && m.rid === pending.rid && cur && cur.racers[m.rid] && cur.racers[m.rid].owner === pid) { const f = pending.resolve; pending = null; f(m.v); }
@@ -2396,6 +2555,7 @@ function renderSettings() {
   if (!BOARDS.some(b => b.id === S.board) && !customDef()) S.board = 'classic';
   seg('#boardpick', 'board', BOARDS.map(b => [b.id, b.name]).concat(myBoards().map(b => ['c:' + b.id, '★ ' + b.name])), S.board); boardHint();
   $('#moves').checked = S.moves !== false;
+  $('#hints').checked = S.hints !== false;
   seg('#weather', 'weather', WEATHERS, S.weather || 'auto');
   $('#adapt').checked = S.adapt;
   seg('#eraser', 'eraser', ERASER.map((e, i) => [i, e.name]), S.eraser);
@@ -2467,6 +2627,7 @@ function wireHome() {
   });
   $('#boardpick').addEventListener('change', e => { S.board = e.target.value; boardHint(); saveSetup(); });
   $('#moves').onchange = e => { S.moves = e.target.checked; saveSetup(); };
+  $('#hints').onchange = e => { S.hints = e.target.checked; saveSetup(); };
   $('#weather').addEventListener('change', e => { S.weather = e.target.value; saveSetup(); });
   $('#openbuild').onclick = () => showBuild(customDef() || null);
   $('#adapt').onchange = e => { S.adapt = e.target.checked; saveSetup(); };
@@ -2603,11 +2764,11 @@ function renderLobby() {
   const room = net.room, me = room.players[net.pid], C = CH[me.charId] || CHARS[0];
   let locals = []; try { locals = JSON.parse(room.meta.locals || '[]'); } catch (e) { /* ignore */ }
   const others = remotes(), all = locals.map(l => ({ name: l.name, charId: l.charId })).concat(others);
-  $('#lobby').innerHTML = `<div class="hero"><h1>Room ${esc(net.code)}</h1><p class="lede onfield">You’re in, ${esc(me.name)}. Pick your racer, then wait for the host to start the race.</p></div>
+  $('#lobby').innerHTML = `<div class="hero"><h1>Room ${esc(net.code)}</h1><p class="lede onfield">${room.meta.mode === 'adv' ? `You’re in, ${esc(me.name)}! You’re on an Adventure team: the host picks each level and you all race it together. If any of you crosses the line first, the whole team wins.` : `You’re in, ${esc(me.name)}. Pick your racer, then wait for the host to start the race.`}</p></div>
     <div class="setup"><div class="panel lobme"><h2>Your racer</h2>
       <div class="mine" style="--h:${C.hue}"><span class="cart">${ART(C.id)}</span><div><h3>${C.name}</h3><span class="cp">${C.power}</span><p>${C.text}</p></div></div>
       <button class="btn" id="lpick">Choose a different racer</button></div>
-    <div class="panel"><h2>${room.meta.mode === 'coop' ? 'Your team' : 'On the start line'}</h2><ul class="who-list">${all.map(p => `<li>${stk(CH[p.charId] || CHARS[0], 46)}<b>${esc(p.name)}</b></li>`).join('')}</ul></div></div>`;
+    <div class="panel"><h2>${room.meta.mode === 'adv' ? 'Your adventure team' : room.meta.mode === 'coop' ? 'Your team' : 'On the start line'}</h2><ul class="who-list">${all.map(p => `<li>${stk(CH[p.charId] || CHARS[0], 46)}<b>${esc(p.name)}</b></li>`).join('')}</ul></div></div>`;
   $('#lpick').onclick = () => openRoster({
     title: 'Choose your racer', current: me.charId,
     takenBy: id => { const l = locals.find(x => x.charId === id); if (l) return l.name; const o = others.find(x => x.charId === id && x.pid !== net.pid); return o ? o.name : null; },
@@ -2631,7 +2792,7 @@ function tick(text, tone) {
 function colsFor() { const col = $('#board').closest('.boardcol'), w = (col && col.clientWidth) || ($('#board').parentElement.clientWidth) || 800; return w < 620 ? 8 : 12; }
 function buildBoard(G, el) {
   const b = el || $('#board'); cols = el ? 12 : colsFor(); path = [];
-  if (G.board === 'mountain') {
+  if (G.board === 'mountain' || G.board === 'lair') {
     const pc = cols / 2, H = Math.max(4, Math.ceil((G.len + 1) / pc) - 1);
     for (let s = 0, i = 0; i <= G.len; s++) {
       const up = s % 2 === 0;
@@ -2763,6 +2924,8 @@ const ARROW = '<svg class="arw" viewBox="0 0 24 24" aria-hidden="true"><path d="
 const BOARD_HINT = {
   classic: 'The original track: boost, slip and pop quiz spaces.',
   river: 'Two shortcuts and two rickety bridges that collapse after three landings.',
+  space: 'Floating among the stars: four wormhole shortcuts and extra boosts.',
+  lair: 'Evil Mr H’s hideout: crumbling bridges, two shortcuts, and lots of slips and pop quizzes.',
   mountain: 'A climb with three shortcuts, a bridge and extra slip spaces.',
 };
 const CARD_HUE = { shield: 215, double: 45, swap: 265, rewind: 335 };
@@ -2854,7 +3017,8 @@ const V = {
       const who = card.querySelector('.who'); if (who && !reduced) { who.classList.remove('cheer'); void who.offsetWidth; who.classList.add('cheer'); }
       const t = $('#tok-' + r.id); if (t) { t.classList.remove('zap'); void t.offsetWidth; t.classList.add('zap'); sparkle(t, 10); }
     } else { sfx.bad(); const w = card.querySelector('.ans .wrong'); if (w && !reduced) w.classList.add('nudge'); }
-    await sleep(G, e.ok ? 1100 : 1900);
+    if (e.why) { const fbx = $('#fb'); if (fbx) fbx.insertAdjacentHTML('afterend', `<div class="howto"><b>How to work it out</b><p>${esc(e.why)}</p></div>`); if (readOn && canAct(r)) say(e.why); }
+    await sleep(G, e.ok ? 1100 : e.why ? 5600 : 1900);
   },
   async dice(G, e) {
     guard(G);
@@ -3005,7 +3169,7 @@ const ui = {
     guard(G);
     const choice = a && Number.isInteger(a.choice) ? a.choice : -1, ok = choice === q.correct;
     lastAnswer = q.answer;
-    await V.reveal(G, emit(G, { t: 'reveal', rid: r.id, choice, correct: q.correct, ok, quiz: !!meta.quiz }));
+    await V.reveal(G, emit(G, { t: 'reveal', rid: r.id, choice, correct: q.correct, ok, quiz: !!meta.quiz, why: !ok && !r.bot && G.hints !== false ? explain(q) : '' }));
     return { correct: ok, ms: a && a.ms > 0 ? a.ms : 99999, choice };
   },
   async roll(G, r, c) {
@@ -3035,10 +3199,10 @@ function mount(G) {
   buildBoard(G); drawStandings(G);
 }
 function launch(G, resumed) {
-  if (hosting() && !G.adv) { G.room = net.code; G.gid = Math.random().toString(36).slice(2, 9); G.seq = (G.seq || 0) + (resumed ? 1000 : 0); }
+  if (hosting() && (!G.adv || G.adv.team)) { G.room = net.code; G.gid = Math.random().toString(36).slice(2, 9); G.seq = (G.seq || 0) + (resumed ? 1000 : 0); }
   else if (G.room) { if (ONLINE && resumed) { net.open(G.room, 'host', onRoomHost); store.set('dd.host', { code: G.room, t: Date.now() }); G.gid = Math.random().toString(36).slice(2, 9); G.seq = (G.seq || 0) + 1000; } else G.room = null; }
   mount(G);
-  if (hosting() && !G.adv) { publishMeta('race'); pushSnap(G); }
+  if (hosting() && (!G.adv || G.adv.team)) { publishMeta('race'); pushSnap(G); }
   const go = async () => {
     if (!resumed) {
       if (G.tour) { const rc = G.tour.races[G.tourRace]; await ui.say(G, rc.final ? 'The final! First across the line wins the cup.' : `${rc.label}: ${rc.adv > 1 ? 'the top ' + rc.adv + ' go' : 'the winner goes'} through to the ${G.tour.races.length - G.tourRace > 2 ? 'next round' : 'final'}.`, 'good'); }
@@ -3178,8 +3342,9 @@ function advLoad() { const a = store.get('dd.adv') || {}; return { stars: a.star
 let A = advLoad();
 const advSave = () => store.set('dd.adv', A);
 const advTotal = () => Object.values(A.stars).reduce((s, n) => s + (+n || 0), 0);
-const advUnlocked = (t = advTotal()) => ADV_ORDER.slice(0, Math.min(CHARS.length, ADV_STARTERS.length + Math.floor(t * (CHARS.length - ADV_STARTERS.length) / ADV_MAXSTARS)));
-const starsFor = id => Math.ceil((ADV_ORDER.indexOf(id) - ADV_STARTERS.length + 1) * ADV_MAXSTARS / (CHARS.length - ADV_STARTERS.length));
+const UNLOCK_STARS = 36;
+const advUnlocked = (t = advTotal()) => ADV_ORDER.slice(0, Math.min(CHARS.length, ADV_STARTERS.length + Math.floor(Math.min(t, UNLOCK_STARS) * (CHARS.length - ADV_STARTERS.length) / UNLOCK_STARS)));
+const starsFor = id => Math.ceil((ADV_ORDER.indexOf(id) - ADV_STARTERS.length + 1) * UNLOCK_STARS / (CHARS.length - ADV_STARTERS.length));
 const levelOpen = i => i === 0 || (A.stars[i - 1] || 0) > 0;
 const starRow = (n, cls) => `<span class="stars ${cls || ''}" aria-label="${n} of 3 stars">${[0, 1, 2].map(k => `<i class="${k < n ? 'on' : ''}">${STAR}</i>`).join('')}</span>`;
 function showAdv() {
@@ -3197,30 +3362,39 @@ function showAdv() {
   $('#adv').innerHTML = `<div class="advtop"><div class="hero"><h1>Adventure</h1><p class="lede onfield">Win a level to earn a star. Answer accurately for more: 70% right earns 2 stars, and 90% earns 3. Every star unlocks new racers.</p></div>
     <div class="panel advstats"><div>${STAR}<b>${tot}</b><span>of ${ADV_MAXSTARS} stars</span></div><div>${stk(C, 44)}<b>${unl.length}</b><span>of ${CHARS.length} racers</span></div></div></div>
     <div class="panel advme">${stk(C, 76)}<div class="advme-t"><input class="nm" id="advname" value="${esc(A.name)}" placeholder="Your name" maxlength="14" aria-label="Your name"><p><b>${C.name}</b> ${C.power}: ${C.text}</p><p class="sub">Questions use the level and question types from the home screen.</p></div><button class="btn" id="advpick">Change racer</button></div>
+    <div class="panel advfriends" id="advfriends"></div>
     ${worlds}
-    <div class="finbtns"><button class="btn ghost big" id="advhome">Back to home</button><button class="btn ghost big" id="advstory">Watch the story</button>${(A.seen || {}).end ? '<button class="btn ghost big" id="advend">Watch the ending</button>' : ''}</div>`;
+    <div class="finbtns"><button class="btn ghost big" id="advhome">Back to home</button><button class="btn ghost big" id="advstory">Watch the story</button>${(A.seen || {}).finale ? '<button class="btn ghost big" id="advend">Watch the ending</button>' : ''}</div>`;
   show('adv');
+  renderFriends(); if (hosting()) publishMeta('lobby');
   $('#advname').oninput = e => { A.name = e.target.value.slice(0, 14); advSave(); };
   $('#advhome').onclick = goHome;
   $('#advstory').onclick = () => playStory(0);
-  if ($('#advend')) $('#advend').onclick = () => playStory('end');
+  if ($('#advend')) $('#advend').onclick = () => playStory('finale');
   $('#advpick').onclick = () => openRoster({ title: 'Choose your racer', current: A.char, locked: id => { if (unl.includes(id)) return null; const k = starsFor(id); return `Locked: ${k} ${k === 1 ? 'star' : 'stars'}`; }, onPick: id => { A.char = id; advSave(); showAdv(); } });
   $$('#adv .lnode').forEach(b => b.onclick = () => advLevel(+b.dataset.lv));
 }
-function advRivals(L) {
-  const used = new Set([A.char]);
-  return L.rivals.map(([id, p, boost, nm]) => {
+const teamSize = () => 1 + (hosting() ? Math.min(3, remotes().filter(p => CH[p.charId] && !p.old).length) : 0);
+/* Rivals for a level. Teams face sharper rivals, plus one extra rival for each extra teammate in race levels. */
+function advRivals(L, used, n) {
+  used = used || new Set([A.char]); n = n || 1;
+  const rv = L.rivals.map(([id, p, boost, nm]) => {
     let cid = id; if (used.has(cid)) cid = CHARS.find(c => !used.has(c.id) && !L.rivals.some(x => x[0] === c.id)).id;
     used.add(cid);
-    return { name: nm || CH[cid].name, charId: cid, level: S.level, bot: true, botP: p, boost: boost || 0, boss: !!nm };
+    return { name: nm || CH[cid].name, charId: cid, level: S.level, bot: true, botP: Math.min(0.92, p + 0.05 * (n - 1)), boost: boost || 0, boss: !!nm };
   });
+  if (L.mode === 'versus') for (let k = 1; k < n && rv.length; k++) {
+    const weak = rv.slice().sort((a, b) => a.botP - b.botP)[0], c = CHARS.find(x => !used.has(x.id) && !L.rivals.some(y => y[0] === x.id)); if (!c) break;
+    used.add(c.id); rv.push({ name: c.name, charId: c.id, level: S.level, bot: true, botP: weak.botP, boost: Math.min(0, weak.boost), boss: false });
+  }
+  return rv;
 }
 function advLevel(i) {
-  const L = ADV[i], W = ADV_WORLDS[L.w], rv = advRivals(L), st = A.stars[i] || 0, d = $('#advdlg');
+  const L = ADV[i], W = ADV_WORLDS[L.w], rv = advRivals(L, null, teamSize()), st = A.stars[i] || 0, d = $('#advdlg');
   const chips = [`${L.len} spaces`, BOARDS.find(b => b.id === W.board).name, L.timer ? `${L.timer} seconds per question` : 'No time limit'].concat(L.mode === 'coop' ? [`Evil Mr H: ${ERASER[L.eraser].name}`, `${L.chalk || 3} chalk`] : []);
   d.innerHTML = `<div class="dhead"><h2 id="advtitle">${L.boss ? CROWN : ''}${esc(L.title)}</h2><div class="dbtns"><button class="btn ghost sm" data-close>Close</button></div></div>
     <p>${esc(L.sub)}</p><div class="chips lchips">${chips.map(c => `<span>${c}</span>`).join('')}</div>
-    ${rv.length ? `<h3>Rivals</h3><ul class="rivals">${rv.map(r => `<li>${stk(CH[r.charId], 46)}<span><b>${esc(r.name)}</b>${r.boss ? '<span class="tag2 bosstag">Boss</span>' : ''}<small>${r.boss ? `Boss power: ${r.boost} extra ${r.boost === 1 ? 'space' : 'spaces'} every turn. ` : ''}${CH[r.charId].power}: ${CH[r.charId].text}</small></span></li>`).join('')}</ul>` : '<h3>No rivals</h3><p class="sub">Just you against Evil Mr H.</p>'}
+    ${rv.length ? `<h3>Rivals</h3><ul class="rivals">${rv.map(r => `<li>${stk(CH[r.charId], 46)}<span><b>${esc(r.name)}</b>${r.boss ? '<span class="tag2 bosstag">Boss</span>' : ''}<small>${r.boss ? `Boss power: ${r.boost} extra ${r.boost === 1 ? 'space' : 'spaces'} every turn. ` : ''}${CH[r.charId].power.replace(/[!?]$/, '')}: ${CH[r.charId].text}</small></span></li>`).join('')}</ul>` : '<h3>No rivals</h3><p class="sub">Just you against Evil Mr H.</p>'}
     <div class="lbest">${starRow(st, 'big')}<span>${st ? `Your best: ${st} ${st === 1 ? 'star' : 'stars'}` : 'Not won yet'}</span></div>
     <div class="finbtns"><button class="btn big" id="advgo">Race!</button></div>`;
   d.showModal();
@@ -3228,16 +3402,19 @@ function advLevel(i) {
 }
 function advStart(i) {
   if (STORY[i] && !(A.seen || {})[i]) return playStory(i, () => advStart(i));
-  const L = ADV[i], me = { name: A.name.trim() || 'You', charId: A.char, level: S.level, bot: false };
-  const G = newGame({ mode: L.mode, len: L.len, board: ADV_WORLDS[L.w].board, adapt: S.adapt, topics: S.topics, timer: L.timer || 0, eraser: L.eraser || 0, racers: [me].concat(advRivals(L)) });
-  if (L.chalk) { G.chalk = L.chalk; G.chalkMax = L.chalk; }
-  G.adv = { lv: i };
+  const L = ADV[i], me = { name: A.name.trim() || 'You', charId: A.char, level: S.level, bot: false }, used = new Set([A.char]);
+  const team = [me].concat((hosting() ? remotes().filter(p => CH[p.charId] && !p.old).slice(0, 3) : []).map(p => { let c = p.charId; if (used.has(c)) c = CHARS.find(x => !used.has(x.id)).id; used.add(c); return { name: p.name, charId: c, level: H.levels[p.pid] || S.level, bot: false, owner: p.pid }; }));
+  const n = team.length;
+  const G = newGame({ mode: L.mode, moves: false, weather: 'auto', hints: S.hints, len: L.len, board: ADV_WORLDS[L.w].board, adapt: S.adapt, topics: S.topics, timer: L.timer || 0, eraser: L.eraser || 0, racers: team.concat(advRivals(L, used, n)) });
+  if (L.mode === 'coop') { const c = (L.chalk || G.chalk) + (n - 1); G.chalk = c; G.chalkMax = c; }
+  G.adv = { lv: i, team: n > 1 };
   store.del('dd.game'); launch(G);
 }
 function showAdvResult(G) {
-  const lv = G.adv.lv, L = ADV[lv], me = G.racers[0];
-  const won = G.mode === 'coop' ? G.result === 'win' : G.finishOrder[0] === 0;
-  const acc = me.asked ? me.correct / me.asked : 0, pct = Math.round(acc * 100);
+  const lv = G.adv.lv, L = ADV[lv], client = isClient(), team = G.racers.filter(r => !r.bot), multi = team.length > 1;
+  const won = G.mode === 'coop' ? G.result === 'win' : team.some(r => r.id === G.finishOrder[0]);
+  const right = team.reduce((a, r) => a + r.correct, 0), asked = team.reduce((a, r) => a + r.asked, 0), first = G.racers[G.finishOrder[0]];
+  const acc = asked ? right / asked : 0, pct = Math.round(acc * 100);
   const got = won ? (acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1) : 0, prev = A.stars[lv] || 0, before = advUnlocked();
   if (got > prev) { A.stars[lv] = got; advSave(); }
   const fresh = advUnlocked().filter(id => !before.includes(id)), next = ADV[lv + 1];
@@ -3247,18 +3424,20 @@ function showAdvResult(G) {
   $('#finish').innerHTML = `<div class="advres panel">
       <h1>${won ? (L.boss ? 'Boss beaten!' : 'Level complete!') : 'Not this time'}</h1>
       ${starRow(got, 'huge')}
-      <p class="lede">You got ${me.correct} of ${me.asked} questions right (${pct}%).</p>
+      <p class="lede">${multi ? `${won && G.mode !== 'coop' && first ? esc(first.name) + ' crossed the line first for the team! ' : ''}Your team got ${right} of ${asked} questions right (${pct}%).` : `You got ${right} of ${asked} questions right (${pct}%).`}</p>
       <p class="sub">${goal}${got > prev && prev ? ' New best!' : ''}</p>
       ${fresh.length ? `<h2>New ${fresh.length > 1 ? 'racers' : 'racer'} unlocked!</h2><div class="unl">${fresh.map(id => `<div class="ucard" style="--h:${CH[id].hue}"><span class="cart">${ART(id)}</span><b>${CH[id].name}</b><small>${CH[id].power}</small></div>`).join('')}</div>` : ''}
-      <div class="finbtns">${won && next ? '<button class="btn big" id="anext">Next level</button>' : ''}<button class="btn ${won && next ? 'ghost ' : ''}big" id="aagain">${won ? 'Play again' : 'Try again'}</button><button class="btn ghost big" id="ares">My answers</button><button class="btn ghost big" id="amap">Back to map</button></div>
+      ${client ? '<p class="sub">Your stars are saved on this device. Waiting for the host to choose the next level…</p>' : ''}
+      <div class="finbtns"${client ? ' hidden' : ''}>${won && next ? '<button class="btn big" id="anext">Next level</button>' : ''}<button class="btn ${won && next ? 'ghost ' : ''}big" id="aagain">${won ? 'Play again' : 'Try again'}</button><button class="btn ghost big" id="ares">My answers</button><button class="btn ghost big" id="amap">Back to map</button></div>
     </div>`;
   show('finish');
   if ($('#anext')) $('#anext').onclick = () => advStart(lv + 1);
-  if (won && lv === ADV.length - 1 && !(A.seen || {}).end) setTimeout(() => { if (!$('#finish').hidden) playStory('end', () => {}); }, 2200);
+  const scene = won && lv === 11 && !(A.seen || {}).mid ? 'mid' : won && lv === ADV.length - 1 && !(A.seen || {}).finale ? 'finale' : null;
+  if (scene) setTimeout(() => { if (!$('#finish').hidden) playStory(scene, () => {}); }, 2200);
   $('#aagain').onclick = () => advStart(lv);
   $('#amap').onclick = showAdv;
   $('#ares').onclick = () => showResults(G);
-  ($('#anext') || $('#aagain')).focus({ preventScroll: true });
+  if (!client) ($('#anext') || $('#aagain')).focus({ preventScroll: true });
   if (won) { sfx.win(); confetti(); } else sfx.back();
 }
 
@@ -3272,7 +3451,7 @@ function showResults(G) {
     const mine = log.filter(x => x.rid === r.id), right = mine.filter(x => x.ok).length, pct = mine.length ? Math.round(right / mine.length * 100) : 0;
     const by = {}; mine.forEach(x => { (by[x.tp] = by[x.tp] || [0, 0])[1]++; if (x.ok) by[x.tp][0]++; });
     const rows = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]).map(([t, [ok, n]]) => `<tr><td>${tname(t)}</td><td class="num">${ok} of ${n}</td><td><span class="rbar"><i style="width:${Math.round(ok / n * 100)}%" class="${ok / n >= 0.8 ? 'g' : ok / n >= 0.5 ? 'm' : 'b'}"></i></span></td></tr>`).join('');
-    const missed = mine.filter(x => !x.ok).map(x => `<li><div class="mq">${x.html}</div><div class="ma"><span class="theirs">${x.choice >= 0 ? 'Answered ' + x.choices[x.choice] : 'No answer (ran out of time)'}</span><span class="rightans">Right answer: ${x.choices[x.correct]}</span><small>${tname(x.tp)}, Level ${x.lv}</small></div></li>`).join('');
+    const missed = mine.filter(x => !x.ok).map(x => `<li><div class="mq">${x.html}</div><div class="ma"><span class="theirs">${x.choice >= 0 ? 'Answered ' + x.choices[x.choice] : 'No answer (ran out of time)'}</span><span class="rightans">Right answer: ${x.choices[x.correct]}</span><span class="howline">How to: ${esc(explain({ html: x.html, answer: x.choices[x.correct], topic: x.tp }))}</span><small>${tname(x.tp)}, Level ${x.lv}</small></div></li>`).join('');
     return `<div class="panel rcard"><div class="rch">${stk(CH[r.charId], 64)}<div class="rwho"><h2>${esc(r.name)}</h2><p>${CH[r.charId].name}${r.bot ? ' (computer)' : ''}</p></div><div class="rscore"><b>${right} of ${mine.length}</b><span>${pct}% right</span></div></div>
       ${mine.length ? `<table class="rtopics"><thead><tr><th>Question type</th><th class="num">Right</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       <h3>${missed ? 'Questions to look at again' : 'Every question right!'}</h3>${missed ? `<ol class="missed">${missed}</ol>` : ''}` : '<p class="hint">No questions answered in this race.</p>'}</div>`;
@@ -3295,7 +3474,7 @@ function cleanBoard(raw, keepId) {
     if (!raw || typeof raw !== 'object') return null;
     const len = [30, 50, 70].includes(+raw.len) ? +raw.len : 0; if (!len) return null;
     const ok = i => Number.isInteger(i) && i > 0 && i < len - 1, used = new Set();
-    const def = { id: keepId ? String(raw.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 12) || newId() : newId(), name: String(raw.name || 'My board').trim().slice(0, 24) || 'My board', style: ['classic', 'river', 'mountain'].includes(raw.style) ? raw.style : 'classic', len, tiles: {}, shorts: {}, bridges: [] };
+    const def = { id: keepId ? String(raw.id || '').replace(/[^a-z0-9]/gi, '').slice(0, 12) || newId() : newId(), name: String(raw.name || 'My board').trim().slice(0, 24) || 'My board', style: ['classic', 'river', 'mountain', 'space', 'lair'].includes(raw.style) ? raw.style : 'classic', len, tiles: {}, shorts: {}, bridges: [] };
     for (const b of Array.isArray(raw.bridges) ? raw.bridges : []) { const f = +b.from; if (ok(f) && ok(f + 2) && ![f, f + 1, f + 2].some(i => used.has(i))) { def.bridges.push({ from: f, to: f + 2 }); [f, f + 1, f + 2].forEach(i => used.add(i)); } }
     for (const [a, z] of Object.entries(raw.shorts || {})) { const f = +a, t = +z; if (ok(f) && ok(t) && t - f >= 3 && t - f <= 15 && !used.has(f) && !used.has(t)) { def.shorts[f] = t; used.add(f); used.add(t); } }
     for (const [i, k] of Object.entries(raw.tiles || {})) { const n = +i; if (ok(n) && ['boost', 'slip', 'quiz'].includes(k) && !used.has(n)) { def.tiles[n] = k; used.add(n); } }
@@ -3346,7 +3525,7 @@ function showBuild(def) {
     <div class="bgrid">
       <div class="panel bside">
         <div class="field"><label class="flabel" for="bname">Board name</label><input class="nm" id="bname" maxlength="24" placeholder="My board" value="${esc(BB.name)}"></div>
-        <div class="field"><span class="flabel">Style</span><div class="seg" id="bstyle">${BOARDS.map(b => `<label><input type="radio" name="bstyle" value="${b.id}"${b.id === BB.style ? ' checked' : ''}><span>${b.id === 'classic' ? 'Track' : b.id === 'river' ? 'River' : 'Mountain'}</span></label>`).join('')}</div></div>
+        <div class="field"><span class="flabel">Style</span><div class="seg" id="bstyle">${BOARDS.map(b => `<label><input type="radio" name="bstyle" value="${b.id}"${b.id === BB.style ? ' checked' : ''}><span>${{ classic: 'Track', river: 'River', mountain: 'Mountain', space: 'Space', lair: 'Lair' }[b.id]}</span></label>`).join('')}</div></div>
         <div class="field"><span class="flabel">Length</span><div class="seg" id="blen">${[30, 50, 70].map(n => `<label><input type="radio" name="blen" value="${n}"${n === BB.len ? ' checked' : ''}><span>${n} spaces</span></label>`).join('')}</div></div>
         <div class="field"><span class="flabel">Tool</span><div class="tools">${BTOOLS.map(([k, t, c]) => `<label><input type="radio" name="btool" value="${k}"${k === btool ? ' checked' : ''}><span><i class="key ${c}"></i>${t}</span></label>`).join('')}</div></div>
         <p class="bmsg" id="bmsg" role="status"></p>
@@ -3389,6 +3568,8 @@ const STYLE3D = {
   classic: { sky: 0xa8dcff, ground: 0x3cb05f, infield: 0x2c9250, rim: 0x1d5e36 },
   river: { sky: 0xb5e3ff, ground: 0x2b8fc9, infield: 0x2f99d4, rim: 0x1a5f88 },
   mountain: { sky: 0xc9dcef, ground: 0x6f8a6a, infield: 0x5f7d63, rim: 0x3c4f3e },
+  space: { sky: 0x060a1f, ground: 0x101830, infield: 0x1d2a55, rim: 0x9aa6c2 },
+  lair: { sky: 0x140b22, ground: 0x2a1d3d, infield: 0x3b2a52, rim: 0x1e1430 },
 };
 const WEATHERS = [['auto', 'To match the board'], ['sunny', 'Sunny'], ['sunset', 'Sunset'], ['night', 'Night'], ['holiday', 'Holiday snow']];
 const TILE3D = { start: '#fffaf0', boost: '#ffc928', slip: '#2c7cf2', quiz: '#7a4df0', short: '#19bfae', bridge: '#b07a43', a: '#de5b40', b: '#cf4c33' };
@@ -3455,15 +3636,16 @@ const B3 = {
     const el = $('#b3d'); if (!el || !path.length) return;
     const W = el.clientWidth || 800, H = el.clientHeight || 520, st = STYLE3D[G.board] || STYLE3D.classic, M = (c, o) => this.M(c, o);
     let wx = G.weather || 'auto'; if (wx === 'auto') wx = G.board === 'river' ? 'rain' : G.board === 'mountain' ? 'snow' : 'sunny';
+    if (G.board === 'space' || G.board === 'lair') wx = G.board;
     this.wx = wx;
     const r = this.r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); r.setSize(W, H); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
     el.appendChild(r.domElement);
     if (!el.querySelector('.lb')) { el.insertAdjacentHTML('beforeend', '<i class="lb lbt"></i><i class="lb lbb"></i><span class="flycap"></span><span class="flyskip">Click to skip</span>'); el.addEventListener('click', () => { if (B3.intro) B3.endFly(); }); }
     el.classList.remove('flying');
     const sc = this.scene = new THREE.Scene();
-    const sky = { night: 0x0e1638, sunset: 0xf3a46b, rain: 0x8ea6b8, holiday: 0xc9d8ea, snow: 0xd2dfec }[wx] || st.sky;
-    sc.background = new THREE.Color(sky); sc.fog = new THREE.Fog(sky, wx === 'rain' || wx === 'snow' || wx === 'holiday' ? 22 : 30, 70);
-    const dim = wx === 'night' ? 0.2 : wx === 'rain' ? 0.8 : 1;
+    const sky = { night: 0x0e1638, sunset: 0xf3a46b, rain: 0x8ea6b8, holiday: 0xc9d8ea, snow: 0xd2dfec, space: 0x060a1f, lair: 0x140b22 }[wx] || st.sky;
+    sc.background = new THREE.Color(sky); sc.fog = wx === 'space' ? new THREE.Fog(sky, 60, 140) : new THREE.Fog(sky, wx === 'rain' || wx === 'snow' || wx === 'holiday' ? 22 : 30, 70);
+    const dim = wx === 'night' ? 0.2 : wx === 'lair' ? 0.5 : wx === 'space' ? 0.9 : wx === 'rain' ? 0.8 : 1;
     sc.add(new THREE.HemisphereLight(wx === 'sunset' ? 0xffe0c0 : 0xffffff, 0x4a5a3a, 0.62 * dim)); sc.add(new THREE.AmbientLight(wx === 'night' ? 0x3a4a90 : 0xffffff, wx === 'night' ? 0.1 : 0.12));
     const sun = new THREE.DirectionalLight(wx === 'sunset' ? 0xffa060 : wx === 'night' ? 0x9fb0ff : 0xffffff, wx === 'sunset' ? 0.75 : 0.5 * dim);
     if (wx === 'sunset') sun.position.set(-14, 6, 6); else sun.position.set(8, 16, 9);
@@ -3471,7 +3653,7 @@ const B3 = {
     const tray = 1.7, bw = (cols + 1.4) * 1.15, bd = (rows + 1.4) * 1.15 + tray, zoff = tray / 2;
     this.bw = bw; this.bd = bd; this.trayZ = (rows - 1) / 2 * 1.15 + 1.25;
     const snowy = wx === 'snow' || wx === 'holiday';
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), M(snowy ? 0xeef3fb : wx === 'night' ? 0x173a2a : st.ground)); ground.rotation.x = -Math.PI / 2; ground.position.y = -0.62; ground.receiveShadow = true; sc.add(ground);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), M(snowy ? 0xeef3fb : wx === 'night' ? 0x173a2a : st.ground)); ground.rotation.x = -Math.PI / 2; ground.position.y = -0.62; ground.receiveShadow = true; ground.visible = wx !== 'space'; sc.add(ground);
     const rim = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.5, 0.5, bd + 0.5), M(st.rim)); rim.position.set(0, -0.4, zoff); rim.receiveShadow = rim.castShadow = true; sc.add(rim);
     const slab = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.5, bd), M(st.infield)); slab.position.set(0, -0.25, zoff); slab.receiveShadow = true; sc.add(slab);
     const trayM = new THREE.Mesh(new THREE.BoxGeometry(bw - 0.8, 0.06, tray - 0.5), M(0x1b2150)); trayM.position.set(0, 0.01, this.trayZ); trayM.receiveShadow = true; sc.add(trayM);
@@ -3489,10 +3671,10 @@ const B3 = {
     this.curves = {};
     Object.keys(G.shorts || {}).forEach(f => {
       const a = this.pos(+f).setY(0.35), z = this.pos(G.shorts[f]).setY(0.35), mid = a.clone().lerp(z, 0.5).setY(1.6 + a.distanceTo(z) * 0.18);
-      const cv = this.curves[f] = new THREE.QuadraticBezierCurve3(a, mid, z), tube = new THREE.Mesh(new THREE.TubeGeometry(cv, 30, 0.06, 6), M(0xffffff)); tube.castShadow = true; sc.add(tube);
+      const cv = this.curves[f] = new THREE.QuadraticBezierCurve3(a, mid, z), tube = new THREE.Mesh(new THREE.TubeGeometry(cv, 30, G.board === 'space' ? 0.09 : 0.06, 6), G.board === 'space' ? new THREE.MeshBasicMaterial({ color: 0xc9a8ff }) : M(0xffffff)); tube.castShadow = true; sc.add(tube);
       const cone = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.4, 10), M(0xffffff)); cone.position.copy(z).setY(0.5); sc.add(cone);
     });
-    this.crowd = []; this.boats = null; this.scenery(G.board, bw, bd, M, wx);
+    this.crowd = []; this.boats = null; this.rocks = null; this.flames = null; this.scenery(G.board, bw, bd, M, wx);
     this.weather(wx, bw, bd);
     this.toks = {};
     const mk = (key, charId, hue, boss) => {
@@ -3558,9 +3740,27 @@ const B3 = {
       this.boats = [];
       for (let i = 0; i < 5; i++) { const g = new THREE.Group(); g.add(new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.3, 0.45), M(0x8a5636))); const sail = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.9, 3), M(0xffffff)); sail.position.y = 0.6; g.add(sail); g.position.set(-bw / 2 - 3 + i * (bw + 6) / 4, -0.42, zc + (i % 2 ? 1 : -1) * (bd / 2 + 2 + (i % 3))); sc.add(g); this.boats.push(g); }
       ring(10, 7, (x, z) => tree(x, z, 1.1));
-    } else {
+    } else if (style === 'mountain') {
       ring(9, 6, (x, z, i) => { const h = 4 + (i % 3) * 1.6; add(new THREE.Mesh(new THREE.ConeGeometry(2.6, h, 7), M(0x7d8b99)), x * 1.25, -0.6 + h / 2, z * 1.25 - 3); add(new THREE.Mesh(new THREE.ConeGeometry(1.05, h * 0.36, 7), M(0xffffff)), x * 1.25, -0.6 + h * 0.86, z * 1.25 - 3); });
       ring(14, 2.4, (x, z) => tree(x, z, 0.9 + Math.random() * 0.3));
+    } else if (style === 'space') {
+      const n = 900, g = new THREE.BufferGeometry(), p = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, r = 55 + Math.random() * 10, q = Math.sqrt(1 - u * u); p[i * 3] = r * q * Math.cos(th); p[i * 3 + 1] = Math.abs(r * u) * 0.9 - 6; p[i * 3 + 2] = r * q * Math.sin(th); }
+      g.setAttribute('position', new THREE.BufferAttribute(p, 3)); sc.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35, fog: false })));
+      const planet = new THREE.Mesh(new THREE.SphereGeometry(16, 32, 24), M(0x2c7cf2)); planet.position.set(-10, -34, -26); sc.add(planet);
+      const land = new THREE.Mesh(new THREE.SphereGeometry(16.1, 32, 24, 0, 1.6, 0.7, 0.9), M(0x2f8f5a)); land.position.copy(planet.position); sc.add(land);
+      const ringed = new THREE.Mesh(new THREE.SphereGeometry(3, 24, 16), M(0xf3a46b)); ringed.position.set(bw / 2 + 6, 7, -bd / 2 - 9); sc.add(ringed);
+      const halo = new THREE.Mesh(new THREE.TorusGeometry(4.8, 0.32, 6, 40), M(0xffe0a8)); halo.position.copy(ringed.position); halo.rotation.x = 1.2; sc.add(halo);
+      this.rocks = []; for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, rr = Math.max(bw, bd) / 2 + 3 + Math.random() * 3, m = add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.3 + Math.random() * 0.5), M(0x8a8f9e)), Math.cos(a) * rr, Math.random() * 2 - 0.5, Math.sin(a) * rr + zc); this.rocks.push({ m, a, rr, sp: 0.05 + Math.random() * 0.08, y: m.position.y }); }
+      [-1, 1].forEach(sx => [-1, 1].forEach(sz => add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 6, 8), M(0xb9c2d6)), sx * bw * 0.4, -3.6, sz * bd * 0.4 + zc)));
+    } else if (style === 'lair') {
+      const tex = this.canvasTex((x, n) => { x.fillStyle = '#1d3b2f'; x.fillRect(0, 0, n, n); x.fillStyle = 'rgba(255,255,255,.82)'; x.font = "34px 'Bagel Fat One', 'Arial Black', sans-serif";
+        ['7 × 8 = ?', 'Mwahaha!', 'x + 3 = 12', 'DETENTION', '½ + ¼ = ?', 'HOMEWORK!', '9² = 81', 'H wins!'].forEach((t, i) => { x.save(); x.translate(26 + (i % 2) * 256, 70 + Math.floor(i / 2) * 118); x.rotate((i % 3 - 1) * 0.08); x.fillText(t, 0, 0); x.restore(); }); }, 512);
+      const wood = M(0x5a3a22); add(new THREE.Mesh(new THREE.BoxGeometry(bw + 3, 7, 0.4), [wood, wood, wood, wood, M(0xffffff, { map: tex }), wood]), 0, 2.9, -bd / 2 + zc - 1.6);
+      this.flames = [];
+      [-1, 1].forEach(sx => [-0.9, 0.3].forEach(sz => { const x = sx * (bw / 2 + 1), z = sz * (bd / 2) + zc; add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 4, 0.8), M(0x3b2a52)), x, 1.4, z);
+        const fl = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.6, 8), new THREE.MeshBasicMaterial({ color: 0xffa53a })); fl.position.set(x, 3.75, z); sc.add(fl);
+        const L = new THREE.PointLight(0xff9a3a, 0.9, 14, 1.5); L.position.set(x, 4, z); sc.add(L); this.flames.push({ fl, L, ph: Math.random() * 6 }); }));
     }
     if (wx === 'night' || holiday) {
       const cols4 = [0xffd84a, 0xe8443c, 0x14a05a, 0x2c7cf2];
@@ -3667,7 +3867,7 @@ const B3 = {
       if (!k.cur) { k.cur = goal.clone(); k.goal = goal.clone(); }
       if (goal.distanceTo(k.goal) > 0.01) {
         const d = goal.distanceTo(k.cur); k.from = k.cur.clone(); k.goal = goal; k.t0 = now; k.m = k.mode; k.mode = null;
-        k.dur = k.m && k.m.kind === 'zip' ? 1100 : k.m && k.m.kind === 'fall' ? 1300 : d > 1.9 ? 560 : 200; k.arc = k.m && k.m.kind === 'spring' ? 2.4 : d > 1.9 ? 1 : 0.45;
+        k.dur = k.m && k.m.kind === 'zip' ? 1100 : k.m && k.m.kind === 'fall' ? 1300 : d > 1.9 ? 560 : 200; k.arc = k.m && k.m.kind === 'spring' ? 2.4 : d > 1.9 ? 1 : 0.45; if (G.board === 'space' && !(k.m && k.m.kind === 'zip')) { k.arc *= 2.1; k.dur *= 1.4; }
       }
       if (k.from) {
         const t = Math.min(1, (now - k.t0) / k.dur), kind = k.m && k.m.kind;
@@ -3687,6 +3887,8 @@ const B3 = {
     for (const i in this.deco) { const d = this.deco[i]; if (d.userData.spin) { d.userData.spin.rotation.y += dt * 1.6; d.userData.spin.position.y = 0.95 + Math.sin(now / 400 + +i) * 0.08; } }
     const act = curR && this.toks[curR.id]; this.marker.visible = !!act && !this.cine;
     if (act) { this.marker.position.copy(act.g.position); this.marker.position.y += 1.95 + Math.sin(now / 220) * 0.12; this.marker.rotation.y += dt * 2; }
+    if (this.rocks && G.board === 'space') this.rocks.forEach(o => { o.a += o.sp * dt; o.m.position.x = Math.cos(o.a) * o.rr; o.m.position.z = Math.sin(o.a) * o.rr + 0.85; o.m.rotation.x += dt * 0.4; o.m.rotation.y += dt * 0.3; });
+    if (this.flames && G.board === 'lair') this.flames.forEach(f => { const k = 0.85 + Math.sin(now / 90 + f.ph) * 0.1 + Math.random() * 0.1; f.L.intensity = 0.9 * k; f.fl.scale.set(1, k, 1); });
     if (this.boats) this.boats.forEach((b, i) => { b.position.x += dt * (i % 2 ? 0.25 : -0.2); if (b.position.x > 30) b.position.x = -30; if (b.position.x < -30) b.position.x = 30; b.rotation.z = Math.sin(now / 600 + i) * 0.06; });
     const ct = (now - this.cheerT) / 1000; this.crowd.forEach(c => { c.m.position.y = c.y + (ct < 2.6 ? Math.max(0, Math.sin(ct * 7 - c.x * 0.55)) * 0.32 * (1 - ct / 2.6) : 0); });
     if (this.wfield) { const a = this.wfield.m.geometry.attributes.position, sp = this.wfield.rain ? 11 : 1.3; for (let i = 0; i < this.wfield.n; i++) { let y = a.array[i * 3 + 1] - sp * dt; if (!this.wfield.rain) a.array[i * 3] += Math.sin(now / 900 + i) * dt * 0.25; if (y < -0.6) y += 12; a.array[i * 3 + 1] = y; } a.needsUpdate = true; }
@@ -3725,7 +3927,7 @@ function applyView() {
 }
 
 /* ---------- adventure story: the Golden Chalk ---------- */
-const STORY_NAMES = { croc: 'Coach Croc', shark: 'Captain Shark', trex: 'Tri-Rex the Great' };
+const STORY_NAMES = { croc: 'Coach Croc', shark: 'Captain Shark', trex: 'Tri-Rex the Great', octo: 'Astro Octo' };
 const STORY = {
   0: { bg: 'night', panels: [
     ['narr', 'Every year, racers from all over the land meet for the Digit Derby, the greatest maths race of all.'],
@@ -3759,12 +3961,37 @@ const STORY = {
     ['me', 'Maybe not with luck. But with maths, I can.', 'happy'],
     ['mrh', 'Finish them, Tri-Rex! The Golden Chalk stays with ME!'],
   ] },
-  end: { bg: 'night', panels: [
+  mid: { bg: 'night', panels: [
     ['trex', 'Impossible! Beaten by a racer who actually knows their times tables!', 'worried'],
-    ['mrh', 'No… NO! My Golden Chalk!'],
+    ['mrh', 'Bah! You’ll never catch me now. I’m taking the Golden Chalk… to SPACE!'],
+    ['narr', 'With a roar of rockets, Evil Mr H blasts off into the sky. The chase isn’t over: next stop, the Space Station!'],
+    ['me', 'Then I’m going to space!', 'happy'],
+  ] },
+  12: { bg: 'space', panels: [
+    ['narr', 'High above the clouds floats the Space Station. Everything is lighter up here, so racers bounce sky-high!'],
+    ['mrh', 'Welcome to my orbit! My wormholes and meteor showers will send you spinning.'],
+    ['me', 'I’ve got maths on my side. Let’s launch!', 'happy'],
+  ] },
+  15: { bg: 'space', panels: [
+    ['octo', 'Bloop! I’m Astro Octo. Eight arms means eight times the speed!'],
+    ['me', 'Eight arms, sure. But can you multiply by eight?', 'happy'],
+    ['mrh', 'Don’t let them reach my rocket, Octo!'],
+  ] },
+  16: { bg: 'lair', panels: [
+    ['narr', 'Astro Octo is beaten! The trail of chalk dust leads to Evil Mr H’s secret Lair, hidden behind a giant chalkboard.'],
+    ['mrh', 'So, you found my Lair. Every trap in here was designed by ME. Including the pop quizzes.'],
+    ['me', 'Then I’ll study every one of them.', 'happy'],
+  ] },
+  19: { bg: 'lair', panels: [
+    ['mrh', 'At last! You want the Golden Chalk? Then race ME. Nobody beats Evil Mr H… and every third turn, I hand out detentions!'],
+    ['me', 'Bring it on.', 'happy'],
+    ['narr', 'The final race begins!'],
+  ] },
+  finale: { bg: 'night', panels: [
+    ['mrh', 'No… NO! Beaten at my own game!'],
     ['narr', 'The Golden Chalk flies back to the Digit Derby, and every board in the land lights up again.'],
-    ['me', 'Maths saves the day! Now, who’s up for another race?', 'cheer'],
-    ['mrh', 'This isn’t over. I’ll be back… with HOMEWORK! Mwahaha!'],
+    ['me', 'Maths saves the day! Thanks for cheering me on!', 'cheer'],
+    ['mrh', 'Fine. You win… this time. But I’ll be back… with HOMEWORK! Mwahaha!'],
     ['narr', 'The End. Thanks for playing! Try for 3 stars on every level to unlock every racer.'],
   ] },
 };
@@ -3786,6 +4013,23 @@ function playStory(key, done) {
     if (readOn) say(text); sfx.pop ? sfx.pop() : tone(660, 0.06, 'triangle');
   };
   el.hidden = false; document.addEventListener('keydown', onKey); draw();
+}
+
+/* ---------- co-op adventure: friends join from their own devices and race as a team ---------- */
+function advMode() { return !$('#adv').hidden || !!(cur && cur.adv); }
+function renderFriends() {
+  const el = $('#advfriends'); if (!el) return;
+  if (!ONLINE) { el.innerHTML = '<h2>Play with friends</h2><p class="hint">Online play isn’t switched on for this copy of the game, so friends can’t join from their own devices. The README explains how to switch it on.</p>'; return; }
+  if (!hosting()) {
+    el.innerHTML = '<div class="frow"><div><h2>Play with friends</h2><p class="hint">Up to 3 friends can join from their own devices and race each level with you as a team. If any of you crosses the line first, the team wins, and everyone earns the stars.</p></div><button class="btn" id="advinvite">Invite friends</button></div>';
+    $('#advinvite').onclick = async () => { await openRoom(); publishMeta('lobby'); renderFriends(); };
+    return;
+  }
+  const rem = remotes();
+  el.innerHTML = `<div class="frow"><div><h2>Play with friends</h2><p class="hint">Friends open the game on their own device, type the code and pick a racer. Then choose any level below and you’ll all race it as a team.</p></div><div class="codebox"><span>Invite code</span><b>${net.code}</b></div></div>
+    <ul class="who-list">${[{ name: (A.name.trim() || 'You') + ' (host)', charId: A.char }].concat(rem).map(p => `<li>${stk(CH[p.charId] || CHARS[0], 46)}<b>${esc(p.name)}</b>${p.old ? '<span class="tag2 warn">Needs to reload the game</span>' : ''}</li>`).join('')}</ul>
+    <div class="addrow">${rem.length ? '' : '<span class="hint">Waiting for friends to join…</span>'}<button class="btn ghost sm" id="advclose">Close the room</button></div>`;
+  $('#advclose').onclick = () => { closeRoom(); renderFriends(); };
 }
 
 /* ---------- go ---------- */
