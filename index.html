@@ -795,6 +795,15 @@ body.full3d .b3d{display:block}
 @keyframes fadein{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.storybox,.sportrait,.bubble,.caption,.spanel{animation:none}}
 .viewseg button[data-fly]{margin-right:10px;background:#19bfae;color:#161b3a}
+/* cinematic flyover: widescreen bars and a caption */
+.b3d .lb{position:absolute;left:0;right:0;height:0;background:#000;z-index:2;transition:height .8s ease;pointer-events:none}
+.b3d .lbt{top:0}.b3d .lbb{bottom:0}
+.b3d.flying .lb{height:11%}
+.b3d .flycap{position:absolute;left:28px;bottom:calc(11% + 18px);z-index:3;font:400 1.6rem var(--disp);color:#fff;text-shadow:0 3px 0 #161b3a,0 0 18px rgba(0,0,0,.5);opacity:0;transform:translateY(10px);transition:opacity .8s ease .6s,transform .8s ease .6s;pointer-events:none}
+.b3d.flying .flycap{opacity:1;transform:none}
+.b3d .flyskip{position:absolute;right:20px;top:calc(11% + 12px);z-index:3;font:700 .85rem var(--body);color:#fff;background:rgba(0,0,0,.45);border-radius:999px;padding:.2em .8em;opacity:0;transition:opacity .6s;pointer-events:none}
+.b3d.flying .flyskip{opacity:1}
+.b3d.flying{cursor:pointer}
 
 </style>
 </head>
@@ -994,7 +1003,7 @@ body.full3d .b3d{display:block}
 <script>window.DD_EXPECT_CONFIG = true;</script>
 <script src="config.js"></script>
 <script>
-const DD_BUILD = '3a19d42266';
+const DD_BUILD = 'cc0f6eb038';
 /* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
 const rnd = n => Math.floor(Math.random() * n);
 const R = (a, b) => a + rnd(b - a + 1);
@@ -3449,6 +3458,8 @@ const B3 = {
     this.wx = wx;
     const r = this.r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); r.setSize(W, H); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
     el.appendChild(r.domElement);
+    if (!el.querySelector('.lb')) { el.insertAdjacentHTML('beforeend', '<i class="lb lbt"></i><i class="lb lbb"></i><span class="flycap"></span><span class="flyskip">Click to skip</span>'); el.addEventListener('click', () => { if (B3.intro) B3.endFly(); }); }
+    el.classList.remove('flying');
     const sc = this.scene = new THREE.Scene();
     const sky = { night: 0x0e1638, sunset: 0xf3a46b, rain: 0x8ea6b8, holiday: 0xc9d8ea, snow: 0xd2dfec }[wx] || st.sky;
     sc.background = new THREE.Color(sky); sc.fog = new THREE.Fog(sky, wx === 'rain' || wx === 'snow' || wx === 'holiday' ? 22 : 30, 70);
@@ -3560,7 +3571,22 @@ const B3 = {
     const m = new THREE.Points(g, new THREE.PointsMaterial({ color: wx === 'rain' ? 0xc9e4ff : 0xffffff, size: wx === 'rain' ? 0.07 : 0.14, transparent: true, opacity: wx === 'rain' ? 0.75 : 0.95, depthWrite: false }));
     this.scene.add(m); this.wfield = { m, n, rain: wx === 'rain' };
   },
-  flyover() { if (!this.on) return; this.intro = { t0: performance.now(), dur: 4200, pts: path.map((p, i) => this.pos(i)) }; },
+  /* Cinematic flyover: a wide establishing sweep, a swoop down to the start line, a steady glide along the track, then a rise into the normal view. */
+  flyover() {
+    if (!this.on) return;
+    const V3 = (x, y, z) => new THREE.Vector3(x, y, z), c = this.center.clone(), E = this.extent, G = this.G, last = path.length - 1;
+    const tp = i => this.pos(Math.max(0, Math.min(last, i)));
+    const cams = [c.clone().add(V3(-E * 0.95, E * 0.55, E * 0.55)), c.clone().add(V3(-E * 0.35, E * 0.72, E * 0.9)), c.clone().add(V3(E * 0.35, E * 0.68, E * 0.88))];
+    const looks = [c.clone(), c.clone(), c.clone()];
+    const start = tp(0); cams.push(start.clone().add(V3(-0.5, 6.2, 8.4))); looks.push(tp(5).setY(0.3));
+    const step = Math.max(5, Math.round(last / 6));
+    for (let i = step; i < last - 2; i += step) { const a = tp(i), b = tp(i + 6); cams.push(a.clone().lerp(b, 0.3).add(V3(0, 6.6, 9.2))); looks.push(a.clone().lerp(b, 0.6).setY(0.3)); }
+    cams.push(tp(last).add(V3(1.5, 7.2, 9.6))); looks.push(tp(last).setY(0.3));
+    cams.push(c.clone().add(this.offset)); looks.push(c.clone());
+    this.intro = { t0: performance.now(), dur: 8500 + Math.min(4000, last * 40), pc: new THREE.CatmullRomCurve3(cams, false, 'centripetal'), lc: new THREE.CatmullRomCurve3(looks, false, 'centripetal') };
+    const el = $('#b3d'); if (el) { el.classList.add('flying'); const cap = el.querySelector('.flycap'); if (cap) cap.textContent = `${G.boardName || (BOARDS.find(b => b.id === G.board) || BOARDS[0]).name} · ${G.len} spaces · ${(WEATHERS.find(w => w[0] === (G.weather || 'auto')) || WEATHERS[0])[1] === 'To match the board' ? { sunny: 'Sunny', rain: 'Rain', snow: 'Snow' }[this.wx] || 'Sunny' : (WEATHERS.find(w => w[0] === G.weather) || ['', ''])[1]}`; }
+  },
+  endFly() { this.intro = null; const el = $('#b3d'); if (el) el.classList.remove('flying'); },
   mood(r, m) { const k = this.on && this.toks[r.id]; if (!k) return; k.want = m; this.tokTex(k.charId, m, k.hue, t => { if (!this.on || k.want !== m) { t.dispose(); return; } const old = k.face.map; k.face.map = t; k.face.needsUpdate = true; if (old) old.dispose(); }); },
   resize() { const el = $('#b3d'); if (!this.on || !el) return; const W = el.clientWidth, H = el.clientHeight; this.r.setSize(W, H); this.cam.aspect = W / H; this.cam.updateProjectionMatrix(); },
   /* event hooks */
@@ -3660,9 +3686,10 @@ const B3 = {
     if (this.wfield) { const a = this.wfield.m.geometry.attributes.position, sp = this.wfield.rain ? 11 : 1.3; for (let i = 0; i < this.wfield.n; i++) { let y = a.array[i * 3 + 1] - sp * dt; if (!this.wfield.rain) a.array[i * 3] += Math.sin(now / 900 + i) * dt * 0.25; if (y < -0.6) y += 12; a.array[i * 3 + 1] = y; } a.needsUpdate = true; }
     for (let i = this.fx.length - 1; i >= 0; i--) { const f = this.fx[i]; f.t += dt; const a = f.m.geometry.attributes.position; f.vel.forEach((v, j) => { v[1] -= f.grav * dt; a.array[j * 3] += v[0] * dt; a.array[j * 3 + 1] += v[1] * dt; a.array[j * 3 + 2] += v[2] * dt; }); a.needsUpdate = true; f.m.material.opacity = Math.max(0, 1 - f.t / f.life); if (f.t >= f.life) { this.scene.remove(f.m); f.m.geometry.dispose(); this.fx.splice(i, 1); } }
     if (this.intro) {
-      const t = Math.min(1, (now - this.intro.t0) / this.intro.dur), pts = this.intro.pts, s = t * (pts.length - 1), i0 = Math.floor(s), p = pts[i0].clone().lerp(pts[Math.min(pts.length - 1, i0 + 1)], s - i0), ahead = pts[Math.min(pts.length - 1, i0 + 4)];
-      if (t < 1) { const want = p.clone().add(new THREE.Vector3(0, 2.6, 3)); this.cam.position.lerp(want, 0.12); this.look.lerp(ahead, 0.12); this.cam.lookAt(this.look); this.r.render(this.scene, this.cam); return; }
-      this.intro = null;
+      const t = Math.min(1, (now - this.intro.t0) / this.intro.dur), u = -(Math.cos(Math.PI * t) - 1) / 2;
+      this.cam.position.copy(this.intro.pc.getPoint(u)); this.look.copy(this.intro.lc.getPoint(u)); this.cam.lookAt(this.look); this.r.render(this.scene, this.cam);
+      if (t < 1) return;
+      this.endFly();
     }
     if (this.cine) {
       const t = (now - this.cine.t0) / 1000, a = t * 0.55 + 0.3, c = this.cine.c;
