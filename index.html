@@ -1023,7 +1023,7 @@ body.full3d .b3d{display:block}
 <script>window.DD_EXPECT_CONFIG = true;</script>
 <script src="config.js"></script>
 <script>
-const DD_BUILD = 'cd2e11bb36';
+const DD_BUILD = '7148b938be';
 /* ===== Digit Derby engine: questions, racers, rules (no DOM in here) ===== */
 const rnd = n => Math.floor(Math.random() * n);
 const R = (a, b) => a + rnd(b - a + 1);
@@ -1658,6 +1658,8 @@ const CHARS = [
     } },
   { id: 'puffer', name: 'Power Puffer', e: '🐡', power: 'Puff Up', text: 'Once a round, when a racer passes you, you puff up: they get pricked and slide back 1, and you float forward 2. In team mode the prick pushes Evil Mr H back instead.',
     async onPassed(G, me, mover) { if (me.mem.puff || mover.pos === me.pos) return; me.mem.puff = 1; await hinder(G, me, [mover], 1, 'Puff Up'); if (!G.over) await shift(G, me, 2, 'Puff Up', 'power'); } },
+  { id: 'mrp', name: 'Mr P', e: '', power: 'Animal Rescue', text: 'Once a round, when another racer would slide back, Mr P swoops in: they lose only 1 space, and he moves 2 forward. If nobody needed rescuing since his last turn, he moves 1 more instead. In team-up, he also saves the team’s chalk the first time Evil Mr H catches someone.',
+    total(G, r, c) { if (!r.mem.saved) mod(c, 'Animal Rescue (all safe)', 1); } },
 ];
 const CH = {}; CHARS.forEach((c, i) => { CH[c.id] = c; c.hue = (i * 47 + 8) % 360; });
 /* Evil Mr H races only as the final Adventure boss, so he isn't in the racer list. */
@@ -1681,6 +1683,10 @@ async function shift(G, r, d, why, kind) {
   if (r.finished || G.over || !d) return 0;
   if (d < 0 && r.charId === 'otter') { d = -d; why = `Flip the Sign (${why})`; kind = 'power'; }
   if (d < 0 && r.pos > 0 && useCard(r, 'shield')) { await ui.card(G, r, 'shield', 'used', `${r.name}’s shield blocks it (${why}).`); return 0; }
+  if (d < 0 && r.pos > 0 && r.charId !== 'mrp') {
+    const hero = alive(G).find(o => o.charId === 'mrp' && o !== r && !o.mem.rescue);
+    if (hero) { hero.mem.rescue = 1; await ui.power(G, hero, 'Animal Rescue'); if (d < -1) { d = -1; why = `${why}, softened by Mr P`; } await shift(G, hero, 2, 'Animal Rescue', 'power'); if (G.over || r.finished) return 0; }
+  }
   const from = r.pos, to = Math.max(0, Math.min(G.len, from + d));
   if (to === from) return 0;
   r.pos = to;
@@ -1846,7 +1852,7 @@ async function landing(G, r, c) {
 /* ---------- a turn ---------- */
 async function takeTurn(G, r, depth) {
   const helper = r.finished, C = helper ? {} : CH[r.charId];
-  r.turns++; r.mem.crab = 0; r.mem.puff = 0;
+  r.turns++; r.mem.crab = 0; r.mem.puff = 0; r.mem.saved = r.mem.rescue || (r.turns === 1 ? 1 : 0); r.mem.rescue = 0;
   const c = { depth, helper, correct: false, ms: 0, bonusN: 1, bonusSides: 6, powerDice: 0, dice: [], mods: [], passed: [], wasLast: isLast(G, r), prevMiss: !!r.lastMiss, startPos: r.pos, again: null };
   if (r.detention && !helper) { r.detention = false; await ui.say(G, `${r.name} is in Evil Mr H’s detention and misses this turn.`, 'bad'); return; }
   const go = await ui.turn(G, r, c);
@@ -1904,6 +1910,8 @@ async function mrhCatch(G) {
     if (G.over) break;
     if (r.pos <= G.eraser) {
       if (useCard(r, 'shield')) { await ui.card(G, r, 'shield', 'used', `${r.name}’s shield saves the chalk.`); await shift(G, r, G.eraser + 3 - r.pos, 'Shielded', 'boost'); continue; }
+      const hero = !G.mrpSaved && alive(G).find(o => o.charId === 'mrp');
+      if (hero) { G.mrpSaved = true; await ui.power(G, hero, 'Animal Rescue'); await ui.say(G, `Mr P rescues ${r.name} from Evil Mr H! No chalk needed.`, 'good'); await shift(G, r, G.eraser + 3 - r.pos, 'Rescued by Mr P', 'boost'); continue; }
       G.chalk--;
       if (G.chalk <= 0) { await ui.say(G, `Evil Mr H catches ${r.name} and the last stick of chalk snaps.`, 'bad'); G.over = true; G.result = 'lose'; break; }
       await ui.say(G, `Evil Mr H catches ${r.name}. The team spends a stick of chalk to redraw them.`, 'bad');
@@ -2103,6 +2111,14 @@ const ART = (() => {
     puffer: () => Array.from({ length: 14 }, (_, k) => { const t = k / 14 * Math.PI * 2, c0 = Math.cos(t), s0 = Math.sin(t), c1 = Math.cos(t + 0.16), s1 = Math.sin(t + 0.16), c2 = Math.cos(t - 0.16), s2 = Math.sin(t - 0.16); return `<path d="M${(50 + c1 * 29).toFixed(1)} ${(55 + s1 * 29).toFixed(1)}L${(50 + c0 * 40).toFixed(1)} ${(55 + s0 * 40).toFixed(1)}L${(50 + c2 * 29).toFixed(1)} ${(55 + s2 * 29).toFixed(1)}z" fill="#f2c14e" stroke="#161b3a" stroke-width="3" stroke-linejoin="round"/>`; }).join('') + mir(E(19, 60, 7, 11, '#7fd3e8', -25)) + C(50, 55, 31, '#ffd45e') + FP('M24 66q26 20 52 0q-4 18 -26 20q-22 -2 -26 -20z', '#fff4cf') + C(50, 55, 31, 'none')
       + mir(D(37, 39, 2.4, '#e0a63a') + D(31, 48, 2, '#e0a63a')) + D(63, 39, 2.4, '#e0a63a') + C(39, 52, 7.5, '#fff', 3) + C(61, 52, 7.5, '#fff', 3) + D(40, 53, 3.6) + D(62, 53, 3.6)
       + E(50, 68, 5, 4.5, '#ff8fab') + blush(22, 62, 3.8) + C(81, 21, 12, '#ffc928', 3) + T(79, 28.5, 15, 'x') + T(87, 21, 9.5, 'n'),
+    mrp: () => P('M12 98L26 66L50 78L74 66L88 98Z', '#2f8f4a') + P('M33 72L50 84L67 72L64 98H36Z', '#d8b878')
+      + C(34.5, 80.5, 3.6, '#9aa3ad', 2.2) + C(47.5, 80.5, 3.6, '#9aa3ad', 2.2) + D(34.5, 80.5, 1.6, '#ff9fb4') + D(47.5, 80.5, 1.6, '#ff9fb4') + C(41, 85.5, 7, '#aab3bd', 2.4) + E(41, 87.6, 2.4, 1.9, K, 0, 0) + D(38.4, 84.4, 1.3) + D(43.6, 84.4, 1.3) + P('M32 89.5h18v9H32z', '#c9a462', 2.4) + S('M32 92h18', '#a8874d', 1.6)
+      + [[29, 45, 6], [71, 45, 6], [32, 38.5, 6], [68, 38.5, 6]].map(([x, y, r]) => C(x, y, r, '#3b2a1e', 2.6)).join('')
+      + mir(E(27.5, 55, 4, 6, '#ecbd93', 0, 2.4)) + C(50, 54, 23, '#f4cba2', 3)
+      + P('M27.2 51Q27 79 50 81.5Q73 79 72.8 51Q71 62 66 68Q60 73.5 50 74Q40 73.5 34 68Q29 62 27.2 51Z', '#5a3d27', 2.4) + P('M43.5 64.5Q50 61.5 56.5 64.5Q50 66.5 43.5 64.5Z', '#3b2a1e', 2)
+      + mir(S('M35 44.5q6 -3 11 0', '#3b2a1e', 3)) + eyes(9.5, 52, 3.6) + smile(68.5, 4.5)
+      + E(50, 33.5, 31, 6.2, '#3f7d4a') + P('M33.5 33Q35 15 50 14Q65 15 66.5 33Z', '#4c9a5a') + FP('M34.2 27.5h31.6l.5 4.2H33.7z', '#2b5e36') + S('M50 15.5v7', '#2b5e36', 2.4)
+      + C(81, 21, 12, '#ffc928', 3) + E(81, 24.6, 3.6, 3.1, K, 0, 0) + D(75.9, 19.6, 1.7) + D(79.2, 16.4, 1.7) + D(82.8, 16.4, 1.7) + D(86.1, 19.6, 1.7),
     eraser: () => { const AF = [[50, 24, 23], [29, 31, 15], [71, 31, 15], [33, 15, 13], [67, 15, 13], [50, 9, 13], [21, 47, 12], [79, 47, 12], [24, 62, 9], [76, 62, 9]]; return P('M10 97L28 70L50 84L72 70L90 97Z', '#7a2fb8') + FP('M28 70L50 84L72 70L66 66L50 75L34 66Z', '#b06ce8') + AF.map(([x, y, r]) => C(x, y, r, '#2b1d14', 3.2)).join('') + AF.map(([x, y, r]) => D(x, y, r - 1.7, '#2b1d14')).join('') + AF.slice(0, 6).map(([x, y, r]) => D(x - r * 0.35, y - r * 0.35, r * 0.22, '#4a3326')).join('') + C(50, 55, 24, '#8a5636', 3) + mir(E(27, 57, 4, 6, '#7a4a2e', 0, 2.5)) + mir(P('M33 42.5L46 47.5L45 51L32 46.5Z', '#1c120c', 2)) + mir(E(41, 53, 5, 4.2, '#fff', 0, 2.2)) + D(42, 53.5, 2.6) + D(60, 53.5, 2.6) + D(42.8, 52.5, 0.8, '#fff') + D(60.8, 52.5, 0.8, '#fff') + E(50, 60.5, 4.2, 3.4, '#6f4128', 0, 2.2) + '<g transform="translate(0 4.5)">' + mir(P('M50 63.5Q43 60 35 62.5Q26 65.5 18.5 60Q12.5 54.5 16 49Q19 46 21.5 49Q18.5 50.5 19.5 53.5Q23 58 31 57Q40 56 50 60.5Z', '#1c120c', 2.4)) + '</g>' + P('M43.5 72.5Q50 78.5 56.5 72Q50 74.5 43.5 72.5Z', '#fff', 2.2) + C(81, 21, 12, '#e8443c', 3) + T(81, 27.5, 16, 'H', '#fff'); },
   };
   const spark = (x, y, k) => `<path d="M${x} ${y - 8 * k}Q${x + 1.6 * k} ${y - 1.6 * k} ${x + 8 * k} ${y}Q${x + 1.6 * k} ${y + 1.6 * k} ${x} ${y + 8 * k}Q${x - 1.6 * k} ${y + 1.6 * k} ${x - 8 * k} ${y}Q${x - 1.6 * k} ${y - 1.6 * k} ${x} ${y - 8 * k}z" fill="#ffd84a" stroke="${K}" stroke-width="2" stroke-linejoin="round"/>`;
@@ -3965,7 +3981,8 @@ const STORY = {
     ['trex', 'Impossible! Beaten by a racer who actually knows their times tables!', 'worried'],
     ['mrh', 'Bah! You’ll never catch me now. I’m taking the Golden Chalk… to SPACE!'],
     ['narr', 'With a roar of rockets, Evil Mr H blasts off into the sky. The chase isn’t over: next stop, the Space Station!'],
-    ['me', 'Then I’m going to space!', 'happy'],
+    ['mrp', 'Hi! I’m Mr P, saviour of animals. Don’t worry about the racers down here: I’ll keep every one of them safe. You go and get that chalk!', 'happy'],
+    ['me', 'Thanks, Mr P! Then I’m going to space!', 'happy'],
   ] },
   12: { bg: 'space', panels: [
     ['narr', 'High above the clouds floats the Space Station. Everything is lighter up here, so racers bounce sky-high!'],
@@ -3991,6 +4008,7 @@ const STORY = {
     ['mrh', 'No… NO! Beaten at my own game!'],
     ['narr', 'The Golden Chalk flies back to the Digit Derby, and every board in the land lights up again.'],
     ['me', 'Maths saves the day! Thanks for cheering me on!', 'cheer'],
+    ['mrp', 'Amazing racing! Every animal in the Digit Derby is safe and sound. I’ll keep an eye on Evil Mr H from now on.', 'cheer'],
     ['mrh', 'Fine. You win… this time. But I’ll be back… with HOMEWORK! Mwahaha!'],
     ['narr', 'The End. Thanks for playing! Try for 3 stars on every level to unlock every racer.'],
   ] },
